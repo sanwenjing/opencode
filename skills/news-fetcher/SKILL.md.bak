@@ -1,0 +1,52 @@
+# news-fetcher
+
+从百度新闻获取前十条新闻，并提供跳转链接的新闻抓取技能。
+
+## What I do
+- 从百度新闻网站抓取前十条最新新闻
+- 提供新闻标题、摘要和原始链接
+- 格式化输出便于查看和使用
+- 支持点击链接直接跳转到新闻页面
+
+## When to use me
+Use this when you need to:
+- 获取最新的新闻资讯
+- 快速浏览今日头条新闻
+- 收集新闻数据进行分析
+- 监控特定新闻动态
+
+## How I work
+1. 访问百度新闻网站
+2. 解析页面结构获取新闻列表
+3. 提取前十条新闻的标题和链接
+4. 格式化输出便于查看
+5. 提供可点击的跳转链接
+
+## Parameters
+- `count`: 获取新闻数量 (默认: 10)
+- `category`: 新闻分类 (可选: 国内、国际、科技、娱乐等)
+
+## Examples
+```javascript
+// 获取前十条新闻
+await newsfetcher.execute();
+
+// 获取五条新闻
+await newsfetcher.execute({count: 5});
+```
+
+## Output Format
+```json
+{
+  "news": [
+    {
+      "title": "新闻标题",
+      "summary": "新闻摘要", 
+      "url": "https://...",
+      "timestamp": "2024-01-01 12:00:00"
+    }
+  ],
+  "total": 10,
+  "source": "baidu-news"
+}
+```

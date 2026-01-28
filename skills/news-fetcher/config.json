@@ -1,0 +1,46 @@
+{
+  "name": "news-fetcher",
+  "version": "1.0.0",
+  "description": "从百度新闻获取前十条新闻，并提供跳转链接的新闻抓取技能",
+  "category": "data-processing",
+  "author": "user",
+  "tags": ["news", "baidu", "scraper", "data-fetching"],
+  "entry_point": "index.js",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "parameters": {
+    "count": {
+      "type": "number",
+      "description": "获取新闻数量，默认10条",
+      "required": false,
+      "default": 10,
+      "min": 1,
+      "max": 50
+    },
+    "category": {
+      "type": "string",
+      "description": "新闻分类（国内、国际、科技、娱乐等）",
+      "required": false,
+      "default": "综合"
+    }
+  },
+  "examples": [
+    {
+      "description": "获取前十条新闻",
+      "parameters": {}
+    },
+    {
+      "description": "获取五条科技新闻",
+      "parameters": {
+        "count": 5,
+        "category": "科技"
+      }
+    }
+  ],
+  "output": {
+    "type": "json",
+    "description": "包含新闻列表的JSON对象，每条新闻包含标题、摘要、链接和时间戳"
+  }
+}
