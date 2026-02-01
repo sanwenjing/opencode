@@ -6,9 +6,23 @@ license: 专有。LICENSE.txt 包含完整条款
 
 ## Filename To Music Tags - 音乐文件名标签提取工具
 
-### 功能概述
-
+### 描述
 这是一个专业的音乐文件元数据处理工具，能够自动从音乐文件名中提取信息并写入标准ID3标签。
+
+### 目录结构
+```
+filename-to-music-tags/
+├── SKILL.md                           # 技能主配置文件
+└── scripts/                           # 脚本目录
+    └── auto_tag_from_filename.py     # 一键自动标签写入脚本（位于 scripts/auto_tag_from_filename.py）
+```
+
+### 脚本索引
+**编码声明**: 本技能所有脚本默认使用UTF-8编码，Windows系统下已配置UTF-8控制台输出。
+
+| 脚本名称 | 脚本路径 | 功能描述 | 调用方式 |
+|---------|---------|---------|---------|
+| auto_tag_from_filename.py | scripts/auto_tag_from_filename.py | 一键完成标题、艺术家、唱片集全部标签的自动写入 | `python scripts/auto_tag_from_filename.py` |
 
 ### 核心功能
 
@@ -57,26 +71,14 @@ license: 专有。LICENSE.txt 包含完整条款
 
 ### 使用方法
 
-#### 方式1: 提取标题和艺术家
+#### 一键完成全部标签写入
 ```bash
-python filename_to_tags.py
+# 确保在包含音乐文件的目录中运行
+python scripts/auto_tag_from_filename.py
 ```
+功能说明：
 - 自动解析文件名中的 " - " 分隔符
-- 前半部分 → 标题(TIT2)
-- 后半部分 → 艺术家(TPE1)
-
-#### 方式2: 写入唱片集（专辑）
-```bash
-python filename_to_album.py
-```
-- 完整文件名 → 唱片集(TALB)
-- 适用于按文件名分类整理
-
-#### 方式3: 一键完成全部
-```bash
-python auto_tag_from_filename.py
-```
-- 同时写入标题、艺术家、唱片集
+- 同时写入标题(TIT2)、艺术家(TPE1)、唱片集(TALB)
 - 批量处理整个音乐文件夹
 
 ### 使用流程
@@ -86,9 +88,12 @@ python auto_tag_from_filename.py
    - 将音乐文件放在同一目录
 
 2. **运行脚本**
-   - 选择需要的功能脚本
-   - 确认处理
-   - 等待自动完成
+   ```bash
+   python scripts/auto_tag_from_filename.py
+   ```
+   - 脚本会自动检测当前目录的所有音频文件
+   - 显示前3个文件的解析示例
+   - 确认后开始批量处理
 
 3. **验证结果**
    - 在音乐播放器中查看属性
@@ -129,14 +134,7 @@ python auto_tag_from_filename.py
 - 确保文件名格式正确（包含分隔符" - "）
 - 部分特殊格式文件可能无法处理
 - WMA文件使用专门的ASF标签格式
-
-### 脚本文件列表
-
-| 脚本 | 功能 |
-|------|------|
-| `filename_to_tags.py` | 提取歌曲名和艺术家写入标签 |
-| `filename_to_album.py` | 将文件名写入唱片集字段 |
-| `auto_tag_from_filename.py` | 一键完成全部标签写入 |
+- 运行脚本前请确保在包含音乐文件的目录中
 
 ### 依赖要求
 
