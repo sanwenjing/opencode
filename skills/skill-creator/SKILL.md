@@ -57,7 +57,8 @@ license: 专有。LICENSE.txt 包含完整条款
    - 创建scripts子目录
 
 5. **SKILL.md文件生成**
-   - 生成标准YAML frontmatter
+   - 生成标准YAML frontmatter（包含 name, description, license 三个必需字段）
+   - 自动添加标准 license 声明
    - 创建模板内容结构
 
 6. **Scripts目录设置**
@@ -91,8 +92,8 @@ license: 专有。LICENSE.txt 包含完整条款
 - **必需frontmatter字段**：
   - `name`: 严格符合命名规范
   - `description`: 1-1024字符，具体明确
+  - `license`: 许可证类型（必需，如：专有。LICENSE.txt 包含完整条款）
 - **可选frontmatter字段**：
-  - `license`: 许可证类型
   - `compatibility`: 兼容性信息
   - `metadata`: 字符串到字符串的映射
 
@@ -103,7 +104,8 @@ license: 专有。LICENSE.txt 包含完整条款
 - [ ] 描述长度在1-1024字符范围内
 - [ ] 目录名与技能名称完全匹配
 - [ ] YAML frontmatter格式正确
-- [ ] 所有必需字段存在
+- [ ] 所有必需字段存在（name, description, license）
+- [ ] license字段存在且格式正确
 - [ ] 文件编码为UTF-8
 - [ ] scripts目录已创建
 
