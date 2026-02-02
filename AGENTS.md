@@ -26,3 +26,7 @@
       sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
       sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
   ```
+
+## 技能创建规则
+- 创建任何新技能时，默认使用 skill-creator 技能来创建
+- 遵循 skill-creator 的标准流程和命名规范
