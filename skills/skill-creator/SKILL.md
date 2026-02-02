@@ -1,12 +1,14 @@
 ---
 name: skill-creator
-description: "严格验证并创建符合OpenCode规范的新技能，包含完整的规范检查、目录结构创建和SKILL.md文件生成。当 Claude 需要创建新技能时用于：(1) 严格验证技能名称和描述格式，(2) 创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式，(5) 提供详细的错误报告和修正建议"
+description: "严格验证并创建符合OpenCode规范的新技能，同时提供完整的技能诊断和修复功能。当 Claude 需要创建新技能时用于：(1) 严格验证技能名称和描述格式，(2) 创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式。当需要修复技能时用于：(1) 诊断技能系统问题，(2) 修复YAML front matter缺失，(3) 清理技能缓存，(4) 验证技能完整性，(5) 修复名称不一致等问题"
 license: 专有。LICENSE.txt 包含完整条款
 ---
 
 ## 我做什么
 
-### 严格验证功能
+### 创建功能
+
+#### 严格验证功能
 - **技能名称验证**：严格按照正则表达式 `^[a-z0-9]+(-[a-z0-9]+)*$` 验证名称格式
 - **名称长度检查**：确保名称长度在1-64个字符范围内
 - **字符规范验证**：禁止以连字符开头或结尾，禁止连续连字符
@@ -14,29 +16,64 @@ license: 专有。LICENSE.txt 包含完整条款
 - **目录名一致性检查**：验证目录名与技能名称完全匹配
 - **YAML frontmatter验证**：确保所有必需字段存在且格式正确
 
-### 创建功能
+#### 创建功能
 - 创建标准目录结构：`技能名/SKILL.md` 和 `技能名/scripts/`
 - 生成符合规范的SKILL.md模板文件
 - 自动填充必需的YAML frontmatter字段
 - 提供可选字段的标准模板
 - 创建scripts目录用于存放所有脚本文件
 
-### 错误处理
+#### 错误处理
 - 提供详细的错误信息和修正建议
 - 阻止不符合规范的技能创建
 - 支持交互式错误修正指导
 
+### 修复功能
+
+#### 诊断功能
+- **技能系统全面诊断**：扫描所有技能目录，检测潜在问题
+- **YAML front matter检查**：验证格式正确性和必需字段完整性
+- **名称一致性验证**：检查目录名与YAML中name字段是否匹配
+- **编码问题检测**：识别文件编码错误
+- **缓存状态检查**：检测Python缓存目录
+- **系统配置验证**：检查技能目录存在性和权限
+
+#### 修复功能
+- **自动修复YAML front matter**：为缺失的技能添加标准front matter
+- **修复缺失字段**：自动补全name、description、license等必需字段
+- **修复名称不一致**：统一目录名与YAML中的技能名称
+- **清理缓存**：安全移除__pycache__目录
+- **交互式修复**：支持逐个确认修复操作
+- **批量自动修复**：一键修复所有检测到的问题
+
+#### 报告生成
+- 生成详细的诊断报告
+- 按严重程度分类问题（critical/high/medium/low）
+- 记录已应用的修复操作
+- 支持导出报告到文件
+
 ## 何时使用我
 
+### 创建新技能时
 当你需要创建新的OpenCode技能时使用此技能。此技能提供：
 - **严格规范验证**：确保100%符合OpenCode官方规范
 - **错误预防机制**：在创建前拦截所有可能的规范违规
 - **详细错误报告**：提供具体的错误位置和修正方案
 - **标准化输出**：生成完全符合官方标准的技能结构
 
+### 修复现有技能时
+当技能系统出现问题或需要维护时使用：
+- **技能加载失败**：诊断并修复导致技能无法加载的问题
+- **YAML格式错误**：修复front matter格式问题和字段缺失
+- **名称不一致**：统一技能目录名和内部标识
+- **系统维护**：定期诊断和清理缓存，保持系统健康
+- **批量修复**：快速修复多个技能的常见问题
+
 ## 使用流程
 
-### 严格验证阶段
+### 创建流程
+
+#### 严格验证阶段
 1. **技能名称验证**
    - 检查长度（1-64字符）
    - 验证字符集（小写字母数字+连字符）
@@ -51,7 +88,7 @@ license: 专有。LICENSE.txt 包含完整条款
    - 验证目录名与名称一致性
    - 检查文件系统权限
 
-### 创建阶段
+#### 创建阶段
 4. **目录结构创建**
    - 创建技能主目录
    - 创建scripts子目录
@@ -66,7 +103,7 @@ license: 专有。LICENSE.txt 包含完整条款
    - 设置目录权限
    - 验证目录结构完整性
 
-### 验证阶段
+#### 验证阶段
 7. **最终验证**
    - 重新验证所有规范要求
    - 检查文件完整性
@@ -78,6 +115,158 @@ license: 专有。LICENSE.txt 包含完整条款
    - 提供详细的创建报告
    - 列出所有验证通过项
    - 标记潜在的改进建议
+
+### 修复流程
+
+#### 诊断阶段
+1. **执行诊断**
+   ```bash
+   python scripts/skill_fixer.py --diagnose-only --verbose
+   ```
+   - 扫描所有技能目录
+   - 检测YAML front matter问题
+   - 验证名称一致性
+   - 检查缓存状态
+
+2. **生成报告**
+   ```bash
+   python scripts/skill_fixer.py --output diagnosis_report.md
+   ```
+   - 查看问题详情
+   - 按严重程度分类
+   - 导出诊断报告
+
+#### 修复阶段
+
+**方式一：交互式修复（推荐）**
+```bash
+python scripts/skill_fixer.py --interactive --verbose
+```
+逐个确认每个修复操作，适合首次修复或重要技能。
+
+**方式二：自动修复**
+```bash
+python scripts/skill_fixer.py --auto-fix
+```
+自动修复所有检测到的问题，适合批量处理。
+
+**方式三：快速修复**
+```bash
+python scripts/quick_fix.py
+```
+仅修复缺失YAML front matter的常见问题，快速简单。
+
+**方式四：安全修复**
+```bash
+python scripts/safe_fix.py
+```
+安全地添加front matter，避免重复修复，适合多次运行。
+
+#### 验证修复
+1. 重新运行诊断确认问题已解决
+2. 检查修复后的技能是否能正常加载
+3. 必要时重启应用程序
+
+## 目录结构
+
+```
+skill-creator/
+├── SKILL.md              # 本技能主配置文件
+├── scripts/              # 脚本目录
+│   ├── skill_fixer.py   # 主修复脚本：完整诊断和修复功能
+│   ├── safe_fix.py      # 安全修复脚本：避免重复修复
+│   └── quick_fix.py     # 快速修复脚本：简化常见问题修复
+└── LICENSE.txt          # 许可证文件
+```
+
+## 脚本索引
+
+**编码声明**: 本技能所有脚本默认使用UTF-8编码，Windows系统下已配置UTF-8控制台输出。
+
+| 脚本名称 | 脚本路径 | 功能描述 | 调用方式 |
+|---------|---------|---------|---------|
+| skill_fixer.py | scripts/skill_fixer.py | 主诊断修复工具：完整扫描、诊断、修复、报告生成 | `python scripts/skill_fixer.py [选项]` |
+| safe_fix.py | scripts/safe_fix.py | 安全修复工具：智能检测避免重复修复 | `python scripts/safe_fix.py [技能目录]` |
+| quick_fix.py | scripts/quick_fix.py | 快速修复工具：仅修复缺失YAML front matter | `python scripts/quick_fix.py [技能目录]` |
+
+### 脚本详细说明
+
+#### skill_fixer.py - 主诊断修复工具
+完整的功能强大的技能诊断和修复工具。
+
+**主要功能**：
+- 全面诊断技能系统问题
+- 检测YAML front matter缺失或错误
+- 验证技能名称一致性
+- 检查文件编码问题
+- 清理Python缓存
+- 生成诊断报告
+
+**使用方法**：
+```bash
+# 仅诊断不修复
+python scripts/skill_fixer.py --diagnose-only --verbose
+
+# 交互式修复（逐个确认）
+python scripts/skill_fixer.py --interactive
+
+# 自动修复所有问题
+python scripts/skill_fixer.py --auto-fix
+
+# 指定技能目录
+python scripts/skill_fixer.py --skills-dir /path/to/skills
+
+# 导出诊断报告
+python scripts/skill_fixer.py --output report.md
+
+# 修复指定技能
+python scripts/skill_fixer.py --skill skill-name --auto-fix
+```
+
+**命令行选项**：
+- `--skills-dir`: 指定技能目录路径
+- `--diagnose-only`: 仅执行诊断，不进行修复
+- `--auto-fix`: 自动修复所有检测到的问题
+- `--interactive`: 交互式修复，逐个确认
+- `--skill`: 指定要修复的单个技能
+- `--output`: 导出诊断报告到文件
+- `--verbose`: 显示详细输出
+
+#### safe_fix.py - 安全修复工具
+安全地修复技能问题，避免重复添加YAML front matter。
+
+**主要功能**：
+- 智能检测已有front matter
+- 清理重复的front matter块
+- 安全添加缺失的front matter
+- 避免对同一文件重复修复
+
+**使用方法**：
+```bash
+# 修复当前目录下的所有技能
+python scripts/safe_fix.py
+
+# 修复指定目录下的技能
+python scripts/safe_fix.py /path/to/skills
+```
+
+#### quick_fix.py - 快速修复工具
+简化版的快速修复工具，专门处理最常见的问题。
+
+**主要功能**：
+- 快速扫描所有技能
+- 仅修复缺失YAML front matter的问题
+- 使用标准模板自动添加front matter
+- 适合批量快速修复
+
+**使用方法**：
+```bash
+# 快速修复当前目录下的所有技能
+python scripts/quick_fix.py
+
+# 快速修复指定目录下的技能
+python scripts/quick_fix.py /path/to/skills
+```
 
 ## 输出标准
 
@@ -199,18 +388,26 @@ license: 专有。LICENSE.txt 包含完整条款
 
 | 脚本名称 | 脚本路径 | 功能描述 | 调用方式 |
 |---------|---------|---------|---------|
-| main.py | scripts/main.py | 主程序入口 | `python scripts/main.py --help` |
-| helper.py | scripts/helper.py | 辅助函数库 | `from scripts.helper import func` |
+| skill_fixer.py | scripts/skill_fixer.py | 主诊断修复工具：完整扫描、诊断、自动修复、报告生成 | `python scripts/skill_fixer.py [选项]` |
+| safe_fix.py | scripts/safe_fix.py | 安全修复工具：避免重复修复，清理重复YAML front matter | `python scripts/safe_fix.py [技能目录]` |
+| quick_fix.py | scripts/quick_fix.py | 快速修复工具：简化版YAML front matter修复 | `python scripts/quick_fix.py [技能目录]` |
 
 ### 使用方法
 [详细的使用说明，包括示例代码]
-
 ## 输出标准
-[输出规范说明]
+
+### 创建技能时的输出
+- 标准目录结构：`技能名/SKILL.md` 和 `技能名/scripts/`
+- 规范的SKILL.md文件，包含完整的YAML front matter和脚本索引
+- 所有文件使用UTF-8编码
+
+### 修复技能时的输出
+- 诊断报告：显示发现的问题分类（critical/high/medium/low）
+- 修复日志：列出已应用的修复操作
+- 可选的Markdown格式诊断报告文件
 
 ## 类别
-[技能分类，如：开发工具、文件处理]
-```
+开发工具、技能创建、规范验证、技能修复、系统维护
 
 ### 验证清单
 创建技能时必须检查以下所有项目：
@@ -241,4 +438,4 @@ license: 专有。LICENSE.txt 包含完整条款
 - [ ] Python脚本包含UTF-8控制台编码设置代码
 
 ## 类别
-开发工具、技能创建、规范验证
+开发工具、技能创建、规范验证、技能修复、系统维护

@@ -16,20 +16,26 @@ license: 专有。LICENSE.txt 包含完整条款
 - **全面 API**：编程和命令行接口
 - **详细报告**：清理操作的完整日志和统计
 
+## 脚本索引
+
+| 脚本 | 描述 | 主要功能 |
+|------|------|----------|
+| `scripts/duplicate_cleaner_final.py` | 智能重复文件清理主程序 | 扫描、分析、预览和执行重复文件清理操作 |
+
 ## 使用方法
 
 ### 命令行
 ```bash
 # 预览重复文件
-python duplicate_cleaner_final.py /path/to/directory
+python scripts/duplicate_cleaner_final.py /path/to/directory
 
 # 执行清理
-python duplicate_cleaner_final.py /path/to/directory --execute
+python scripts/duplicate_cleaner_final.py /path/to/directory --execute
 ```
 
 ### 编程方式
 ```python
-from duplicate_cleaner_final import preview_duplicate_cleanup, execute_duplicate_cleanup
+from scripts.duplicate_cleaner_final import preview_duplicate_cleanup, execute_duplicate_cleanup
 
 # 预览模式
 result = preview_duplicate_cleanup('.')
