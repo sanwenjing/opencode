@@ -50,7 +50,10 @@ license: 专有。LICENSE.txt 包含完整条款
         with open(skill_md, 'w', encoding='utf-8') as f:
             f.write(yaml_block + content)
         
+        # 使用系统路径分隔符显示路径
+        display_path = os.path.normpath(skill_md)
         print(f"修复了技能 {skill_name} 的 YAML front matter")
+        print(f"文件位置: {display_path}")
         return True
         
     except Exception as e:

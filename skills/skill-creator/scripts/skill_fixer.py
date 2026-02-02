@@ -31,6 +31,11 @@ class SkillFixer:
         self.skills_dir = skills_dir or os.path.join(os.path.dirname(__file__), "..", "..")
         self.issues = []
         self.fixes_applied = []
+        self.path_sep = os.sep  # 系统路径分隔符（Windows: \, Unix/Linux/macOS: /）
+
+    def format_path_for_display(self, *parts: str) -> str:
+        """格式化路径用于显示（使用当前系统的路径分隔符）"""
+        return self.path_sep.join(parts)
         
     def scan_skill_directories(self) -> List[str]:
         """扫描所有技能目录"""

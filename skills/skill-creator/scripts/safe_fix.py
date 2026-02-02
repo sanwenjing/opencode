@@ -79,7 +79,9 @@ def clean_skill_file(file_path: str) -> bool:
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(yaml_content + remaining_content)
         
-        print(f"清理了文件: {file_path}")
+        # 使用系统路径分隔符显示路径
+        display_path = os.path.normpath(file_path)
+        print(f"清理了文件: {display_path}")
         return True
         
     except Exception as e:

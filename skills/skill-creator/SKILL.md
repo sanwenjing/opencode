@@ -430,6 +430,70 @@ beautifulsoup4>=4.11.0
 - **命名规范**: 脚本文件名应简洁明了，使用小写字母、数字和下划线
 - **禁止项**: 不得在根目录下存放任何可执行脚本文件
 
+#### 5. 输出文件规则（重要）
+**规则**: 所有脚本生成的输出文件（如下载的文件、生成的报告、输出的数据等）必须保存到**当前工作目录**，而不是技能安装目录。
+
+**原因**:
+- 技能安装目录通常位于系统配置目录（如 `~/.config/opencode/skills/`）
+- 用户希望在当前工作目录中看到输出结果
+- 避免污染技能安装目录
+
+**跨平台路径处理（重要）**:
+在Python中处理文件路径时，必须遵循以下规则以确保跨平台兼容性：
+
+1. **使用 os.path.join()**: 始终使用 `os.path.join()` 来构建路径，它会根据操作系统自动选择正确的路径分隔符：
+   - Windows: 自动使用反斜杠 `\\`
+   - Unix/Linux/macOS: 自动使用斜杠 `/`
+
+2. **禁止硬编码路径分隔符**:
+   ```python
+   # 错误示例 - 硬编码路径分隔符
+   output_path = "C:\\Users\\user\\data\\output.txt"  # 仅限Windows
+   output_path = "/home/user/data/output.txt"  # 仅限Unix/Linux/macOS
+   
+   # 错误示例 - 混用分隔符
+   output_path = "data/output.txt"  # Windows上会失败
+   ```
+
+3. **正确使用 os.path.join()**:
+   ```python
+   import os
+   
+   # 正确 - 使用 os.path.join() 自动处理
+   output_path = os.path.join(os.getcwd(), "output.txt")
+   data_dir = os.path.join(os.getcwd(), "data")
+   result_path = os.path.join(data_dir, "result.txt")
+   
+   # os.path.join() 会根据操作系统自动选择:
+   # Windows: "C:\\Users\\user\\data\\result.txt"
+   # Unix/Linux/macOS: "/home/user/data/result.txt"
+   ```
+
+4. **获取当前系统路径分隔符**（如需显示）:
+   ```python
+   path_sep = os.sep  # Windows: \\, Unix/Linux/macOS: /
+   ```
+
+**实现方法**:
+```python
+import os
+
+# 正确: 保存到当前工作目录（自动使用系统路径分隔符）
+output_path = os.path.join(os.getcwd(), "output.txt")
+
+# 正确: 构建多级路径（自动处理路径分隔符）
+data_dir = os.path.join(os.getcwd(), "data", "output")
+result_path = os.path.join(data_dir, "result.txt")
+
+# 错误: 不要保存到脚本所在目录
+# script_dir = os.path.dirname(os.path.abspath(__file__))
+# output_path = os.path.join(script_dir, "output.txt")
+
+# 错误: 不要硬编码路径分隔符
+# output_path = "C:\\Users\\user\\data\\output.txt"  # 仅限Windows
+# output_path = "/home/user/data/output.txt"  # 仅限Unix/Linux/macOS
+```
+
 #### 5. 快速定位指南
 为了帮助调用方快速定位脚本，SKILL.md应包含：
 - 完整的文件树结构图
@@ -519,6 +583,11 @@ license: 专有。LICENSE.txt 包含完整条款
 - [ ] 脚本索引中包含脚本名称、路径、功能描述、调用方式
 - [ ] 包含编码声明，明确说明使用UTF-8编码
 - [ ] Python脚本包含UTF-8控制台编码设置代码
+- [ ] 包含"输出文件规则"章节，说明输出到当前工作目录的要求
+
+**输出规则验证**：
+- [ ] 脚本使用 `os.getcwd()` 获取当前工作目录作为输出路径
+- [ ] 输出文件不保存到技能安装目录
 
 ## 类别
 开发工具、技能创建、规范验证、技能修复、系统维护
