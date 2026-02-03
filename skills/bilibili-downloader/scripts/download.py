@@ -572,8 +572,23 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
     # 截取标题前30字符
     if len(safe_title) > 30:
         safe_title = safe_title[:30].strip()
-    main_output_dir = os.path.join(output_dir, f"{timestamp}{safe_title}")
-    os.makedirs(main_output_dir, exist_ok=True)
+    
+    # 检查是否存在已下载的文件夹（包含该视频标题的文件夹）
+    target_folder_name = f"{safe_title}"
+    existing_folder = None
+    
+    if os.path.exists(output_dir):
+        for folder in os.listdir(output_dir):
+            if target_folder_name in folder and os.path.isdir(os.path.join(output_dir, folder)):
+                existing_folder = os.path.join(output_dir, folder)
+                break
+    
+    if existing_folder:
+        main_output_dir = existing_folder
+        print(f"[INFO] 检测到已存在的下载文件夹，使用现有文件夹: {os.path.basename(main_output_dir)}")
+    else:
+        main_output_dir = os.path.join(output_dir, f"{timestamp}{safe_title}")
+        os.makedirs(main_output_dir, exist_ok=True)
     
     # 2. 下载每个分P
     total_pages = len(page_list)
@@ -679,6 +694,27 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                     # 下载视频
                     video_filename = f"{p_safe_title}_video.mp4"
                     video_path = os.path.join(main_output_dir, video_filename)
+                    audio_filename = f"{p_safe_title}_audio.m4a"
+                    audio_path = os.path.join(main_output_dir, audio_filename)
+                    final_filename = f"{p_safe_title}.mp4"
+                    final_path = os.path.join(main_output_dir, final_filename)
+                    
+                    # 检查最终文件是否已存在（下载完成）
+                    if os.path.exists(final_path):
+                        print(f"⏭️ 分P {page_idx + 1} 已下载完成，跳过: {final_filename}")
+                        return True, ""
+                    
+                    # 检查临时文件是否存在
+                    video_exists = os.path.exists(video_path)
+                    audio_exists = os.path.exists(audio_path)
+                    
+                    if video_exists and audio_exists:
+                        print(f"⏭️ 分P {page_idx + 1} 音视频已下载，正在合并...")
+                        if auto_merge and ffmpeg_path:
+                            merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
+                            if merge_success:
+                                print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
+                                return True, ""
                     
                     print(f"[INFO] 下载视频...")
                     if not download_file(best_video['url'], video_path):
@@ -687,10 +723,6 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                         if retry_count < max_retries - 1:
                             continue
                         return success, error_msg
-                    
-                    # 下载音频
-                    audio_filename = f"{p_safe_title}_audio.m4a"
-                    audio_path = os.path.join(main_output_dir, audio_filename)
                     
                     print(f"[INFO] 下载音频...")
                     if not download_file(best_audio['url'], audio_path):
@@ -701,9 +733,6 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                         return success, error_msg
                     
                     # 合并音视频
-                    final_filename = f"{p_safe_title}.mp4"
-                    final_path = os.path.join(main_output_dir, final_filename)
-                    
                     if auto_merge and ffmpeg_path:
                         merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
                         if merge_success:
@@ -763,13 +792,28 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
     return success_count > 0
 
 
-def download_file(url: str, file_path: str) -> bool:
-    """下载单个文件"""
+def download_file(url: str, file_path: str, check_existing: bool = True) -> bool:
+    """下载单个文件
+    
+    Args:
+        url: 下载链接
+        file_path: 保存路径
+        check_existing: 是否检查已存在的文件（默认True）
+    
+    Returns:
+        下载是否成功
+    """
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
             'Referer': 'https://www.bilibili.com',
         }
+        
+        # 检查文件是否已存在
+        if check_existing and os.path.exists(file_path):
+            existing_size = os.path.getsize(file_path)
+            print(f"\n  ⏭️ 文件已存在，跳过下载: {os.path.basename(file_path)} ({existing_size / 1024 / 1024:.2f} MB)")
+            return True
         
         req = urllib.request.Request(url, headers=headers)
         
@@ -777,7 +821,17 @@ def download_file(url: str, file_path: str) -> bool:
             total_size = int(response.headers.get('Content-Length', 0))
             downloaded = 0
             
-            with open(file_path, 'wb') as f:
+            # 支持断点续传：如果文件存在，从断点继续
+            file_mode = 'ab' if os.path.exists(file_path) else 'wb'
+            existing_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+            
+            if existing_size > 0:
+                print(f"\n  📍 检测到已下载的部分文件，从断点继续...")
+                headers['Range'] = f'bytes={existing_size}-'
+                req = urllib.request.Request(url, headers=headers)
+                downloaded = existing_size
+            
+            with open(file_path, file_mode) as f:
                 while True:
                     chunk = response.read(1024 * 1024)
                     if not chunk:
@@ -787,7 +841,7 @@ def download_file(url: str, file_path: str) -> bool:
                     downloaded += len(chunk)
                     
                     if total_size > 0:
-                        progress = (downloaded / total_size) * 100
+                        progress = ((existing_size + downloaded) / (existing_size + total_size)) * 100 if existing_size > 0 else (downloaded / total_size) * 100
                         print(f"  进度: {progress:.1f}%", end='\r')
             
             file_size = os.path.getsize(file_path)
