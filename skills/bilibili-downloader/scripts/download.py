@@ -586,6 +586,27 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
     if existing_folder:
         main_output_dir = existing_folder
         print(f"[INFO] 检测到已存在的下载文件夹，使用现有文件夹: {os.path.basename(main_output_dir)}")
+        
+        # 清理残留的中间文件（无论完整文件是否存在都清理）
+        cleanup_count = 0
+        print(f"[INFO] 正在清理残留的中间文件...")
+        for filename in os.listdir(main_output_dir):
+            # 检查是否是临时文件（以 _video.mp4 或 _audio.m4a 结尾）
+            if filename.endswith('_video.mp4') or filename.endswith('_audio.m4a'):
+                try:
+                    file_path = os.path.join(main_output_dir, filename)
+                    if os.path.exists(file_path):
+                        file_size = os.path.getsize(file_path)
+                        os.remove(file_path)
+                        cleanup_count += 1
+                        print(f"  🗑️ 已删除残留文件: {filename} ({file_size / 1024 / 1024:.2f} MB)")
+                except Exception as e:
+                    print(f"  ⚠️ 删除文件失败 {filename}: {e}")
+        
+        if cleanup_count > 0:
+            print(f"[INFO] 已清理 {cleanup_count} 个残留中间文件")
+        else:
+            print(f"[INFO] 未发现残留中间文件")
     else:
         main_output_dir = os.path.join(output_dir, f"{timestamp}{safe_title}")
         os.makedirs(main_output_dir, exist_ok=True)
@@ -704,17 +725,13 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                         print(f"⏭️ 分P {page_idx + 1} 已下载完成，跳过: {final_filename}")
                         return True, ""
                     
-                    # 检查临时文件是否存在
-                    video_exists = os.path.exists(video_path)
-                    audio_exists = os.path.exists(audio_path)
-                    
-                    if video_exists and audio_exists:
-                        print(f"⏭️ 分P {page_idx + 1} 音视频已下载，正在合并...")
-                        if auto_merge and ffmpeg_path:
-                            merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
-                            if merge_success:
-                                print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
-                                return True, ""
+                    # 检查并清理不完整的临时文件
+                    if os.path.exists(video_path):
+                        os.remove(video_path)
+                        print(f"🗑️ 清理不完整的视频文件: {video_filename}")
+                    if os.path.exists(audio_path):
+                        os.remove(audio_path)
+                        print(f"🗑️ 清理不完整的音频文件: {audio_filename}")
                     
                     print(f"[INFO] 下载视频...")
                     if not download_file(best_video['url'], video_path):
