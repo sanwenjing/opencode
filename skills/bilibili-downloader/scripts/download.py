@@ -582,131 +582,151 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
     if total_pages > 1:
         print(f"[INFO] 将使用 {min(threads, total_pages)} 个线程并行下载 {total_pages} 个视频")
     
-    async def download_single_video(idx: int, page_idx: int, semaphore: asyncio.Semaphore) -> tuple:
-        """下载单个视频的异步函数"""
-        async with semaphore:
-            success = True
-            error_msg = ""
-            
-            try:
-                page_info = pages[page_idx]
-                page_title = page_info.get('part', f'P{page_idx + 1}')
-                page_duration = page_info.get('duration', 0)
+    async def download_single_video(idx: int, page_idx: int, semaphore: asyncio.Semaphore, max_retries: int = 3) -> tuple:
+        """下载单个视频的异步函数，支持重试"""
+        page_info = pages[page_idx]
+        page_title = page_info.get('part', f'P{page_idx + 1}')
+        error_msg = "未知错误"
+        
+        for retry_count in range(max_retries):
+            async with semaphore:
+                success = True
+                error_msg = ""
                 
-                print(f"\n{'='*70}")
-                print(f"[INFO] 下载第 {idx}/{total_pages} 个视频 (分P {page_idx + 1}): {page_title}")
-                print(f"{'='*70}")
-                
-                # 获取下载链接
-                download_info = await v.get_download_url(page_index=page_idx)
-                
-                urls = []
-                
-                # 解析DASH格式
-                if 'dash' in download_info:
-                    dash = download_info['dash']
+                try:
+                    retry_prefix = f"[重试 {retry_count + 1}/{max_retries}]" if retry_count > 0 else ""
+                    print(f"\n{'='*70}")
+                    print(f"{retry_prefix}[INFO] 下载第 {idx}/{total_pages} 个视频 (分P {page_idx + 1}): {page_title}")
+                    print(f"{'='*70}")
                     
-                    # 视频流
-                    if 'video' in dash:
-                        for v_stream in dash['video']:
-                            urls.append({
-                                'url': v_stream.get('baseUrl', v_stream.get('base_url', '')),
-                                'quality': v_stream.get('id', 0),
-                                'bandwidth': v_stream.get('bandwidth', 0),
-                                'codecs': v_stream.get('codecs', ''),
-                                'type': 'video'
-                            })
+                    if retry_count > 0:
+                        print(f"[INFO] 等待3秒后重试...")
+                        await asyncio.sleep(3)
                     
-                    # 音频流
-                    if 'audio' in dash:
-                        for a_stream in dash['audio']:
-                            urls.append({
-                                'url': a_stream.get('baseUrl', a_stream.get('base_url', '')),
-                                'quality': a_stream.get('id', 0),
-                                'bandwidth': a_stream.get('bandwidth', 0),
-                                'type': 'audio'
-                            })
-                
-                if not urls:
-                    success = False
-                    error_msg = "未找到下载链接"
-                    return success, error_msg
-                
-                # 分离音视频
-                video_streams = [u for u in urls if u['type'] == 'video']
-                audio_streams = [u for u in urls if u['type'] == 'audio']
-                
-                if not video_streams or not audio_streams:
-                    success = False
-                    error_msg = "未找到完整的音视频流"
-                    return success, error_msg
-                
-                # 选择最佳视频流
-                best_video = select_best_video_stream(urls)
-                
-                if not best_video:
-                    success = False
-                    error_msg = "无法选择有效的视频流"
-                    return success, error_msg
-                
-                best_audio = max(audio_streams, key=lambda x: x['bandwidth'])
-                
-                quality_name = get_quality_name(best_video.get('quality', 0))
-                print(f"[INFO] 视频画质: {quality_name} (ID: {best_video.get('quality', 0)})")
-                print(f"[INFO] 视频编码: {best_video.get('codecs', 'unknown')}")
-                
-                # 准备文件名（格式：01.标题.mp4）
-                page_num = page_idx + 1
-                # 清理标题：只保留字母、数字、中文
-                safe_page_title = re.sub(r'[\\/:*?"<>|，。（）()！!]', '', page_title)
-                safe_page_title = safe_page_title.strip()
-                # 截取标题前30个字符
-                if len(safe_page_title) > 30:
-                    safe_page_title = safe_page_title[:30].strip()
-                # 去掉标题开头的数字序号（如 "1.n8n介绍" -> "n8n介绍"）
-                safe_page_title = re.sub(r'^\d+[\.．]', '', safe_page_title)
-                p_safe_title = f"{page_num:02d}.{safe_page_title}"
-                
-                # 下载视频
-                video_filename = f"{p_safe_title}_video.mp4"
-                video_path = os.path.join(main_output_dir, video_filename)
-                
-                print(f"[INFO] 下载视频...")
-                if not download_file(best_video['url'], video_path):
-                    success = False
-                    error_msg = "下载视频失败"
-                    return success, error_msg
-                
-                # 下载音频
-                audio_filename = f"{p_safe_title}_audio.m4a"
-                audio_path = os.path.join(main_output_dir, audio_filename)
-                
-                print(f"[INFO] 下载音频...")
-                if not download_file(best_audio['url'], audio_path):
-                    success = False
-                    error_msg = "下载音频失败"
-                    return success, error_msg
-                
-                # 合并音视频
-                final_filename = f"{p_safe_title}.mp4"
-                final_path = os.path.join(main_output_dir, final_filename)
-                
-                if auto_merge and ffmpeg_path:
-                    merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
-                    if merge_success:
-                        print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
+                    # 获取下载链接
+                    download_info = await v.get_download_url(page_index=page_idx)
+                    
+                    urls = []
+                    
+                    # 解析DASH格式
+                    if 'dash' in download_info:
+                        dash = download_info['dash']
+                        
+                        # 视频流
+                        if 'video' in dash:
+                            for v_stream in dash['video']:
+                                urls.append({
+                                    'url': v_stream.get('baseUrl', v_stream.get('base_url', '')),
+                                    'quality': v_stream.get('id', 0),
+                                    'bandwidth': v_stream.get('bandwidth', 0),
+                                    'codecs': v_stream.get('codecs', ''),
+                                    'type': 'video'
+                                })
+                        
+                        # 音频流
+                        if 'audio' in dash:
+                            for a_stream in dash['audio']:
+                                urls.append({
+                                    'url': a_stream.get('baseUrl', a_stream.get('base_url', '')),
+                                    'quality': a_stream.get('id', 0),
+                                    'bandwidth': a_stream.get('bandwidth', 0),
+                                    'type': 'audio'
+                                })
+                    
+                    if not urls:
+                        success = False
+                        error_msg = "未找到下载链接"
+                        if retry_count < max_retries - 1:
+                            continue
+                        return success, error_msg
+                    
+                    # 分离音视频
+                    video_streams = [u for u in urls if u['type'] == 'video']
+                    audio_streams = [u for u in urls if u['type'] == 'audio']
+                    
+                    if not video_streams or not audio_streams:
+                        success = False
+                        error_msg = "未找到完整的音视频流"
+                        if retry_count < max_retries - 1:
+                            continue
+                        return success, error_msg
+                    
+                    # 选择最佳视频流
+                    best_video = select_best_video_stream(urls)
+                    
+                    if not best_video:
+                        success = False
+                        error_msg = "无法选择有效的视频流"
+                        if retry_count < max_retries - 1:
+                            continue
+                        return success, error_msg
+                    
+                    best_audio = max(audio_streams, key=lambda x: x['bandwidth'])
+                    
+                    quality_name = get_quality_name(best_video.get('quality', 0))
+                    print(f"[INFO] 视频画质: {quality_name} (ID: {best_video.get('quality', 0)})")
+                    print(f"[INFO] 视频编码: {best_video.get('codecs', 'unknown')}")
+                    
+                    # 准备文件名（格式：01.标题.mp4）
+                    page_num = page_idx + 1
+                    safe_page_title = re.sub(r'[\\/:*?"<>|，。（）()！!]', '', page_title)
+                    safe_page_title = safe_page_title.strip()
+                    if len(safe_page_title) > 30:
+                        safe_page_title = safe_page_title[:30].strip()
+                    safe_page_title = re.sub(r'^\d+[\.．]', '', safe_page_title)
+                    p_safe_title = f"{page_num:02d}.{safe_page_title}"
+                    
+                    # 下载视频
+                    video_filename = f"{p_safe_title}_video.mp4"
+                    video_path = os.path.join(main_output_dir, video_filename)
+                    
+                    print(f"[INFO] 下载视频...")
+                    if not download_file(best_video['url'], video_path):
+                        success = False
+                        error_msg = "下载视频失败"
+                        if retry_count < max_retries - 1:
+                            continue
+                        return success, error_msg
+                    
+                    # 下载音频
+                    audio_filename = f"{p_safe_title}_audio.m4a"
+                    audio_path = os.path.join(main_output_dir, audio_filename)
+                    
+                    print(f"[INFO] 下载音频...")
+                    if not download_file(best_audio['url'], audio_path):
+                        success = False
+                        error_msg = "下载音频失败"
+                        if retry_count < max_retries - 1:
+                            continue
+                        return success, error_msg
+                    
+                    # 合并音视频
+                    final_filename = f"{p_safe_title}.mp4"
+                    final_path = os.path.join(main_output_dir, final_filename)
+                    
+                    if auto_merge and ffmpeg_path:
+                        merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
+                        if merge_success:
+                            print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
+                        else:
+                            print(f"✓ 分P {page_idx + 1} 下载完成（未合并）: {video_filename}, {audio_filename}")
                     else:
-                        print(f"✓ 分P {page_idx + 1} 下载完成（未合并）: {video_filename}, {audio_filename}")
-                else:
-                    print(f"✓ 分P {page_idx + 1} 下载完成: {video_filename}, {audio_filename}")
-                
-                return success, error_msg
-                
-            except Exception as e:
-                print(f"[ERROR] 下载分P {page_idx + 1} 失败: {e}")
-                import traceback
-                traceback.print_exc()
-                return False, str(e)
+                        print(f"✓ 分P {page_idx + 1} 下载完成: {video_filename}, {audio_filename}")
+                    
+                    return success, error_msg
+                    
+                except Exception as e:
+                    print(f"[ERROR] 下载分P {page_idx + 1} 失败: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    error_msg = str(e)
+                    if retry_count < max_retries - 1:
+                        print(f"[INFO] 将在3秒后进行第{retry_count + 2}次重试...")
+                        await asyncio.sleep(3)
+                        continue
+                    return False, error_msg
+        
+        return False, error_msg
     
     # 创建信号量限制并发数
     semaphore = asyncio.Semaphore(min(threads, total_pages))
