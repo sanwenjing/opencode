@@ -1,0 +1,8 @@
+node_modules
+package.json
+bun.lock
+
+/skills/bilibili-downloader/config.ini
+skills/bilibili-downloader/ffmpeg
+**/__pycache__/
+**/nul

@@ -21,8 +21,9 @@ import urllib.request
 import argparse
 import subprocess
 import shutil
-from typing import Optional
-from bilibili_api import video
+import configparser
+from typing import Optional, List, Dict
+from bilibili_api import video, Credential
 
 
 def extract_bvid(url: str) -> str:
@@ -229,7 +230,251 @@ def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg
         return False
 
 
-async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge: bool = True):
+def load_credential():
+    """
+    加载B站登录凭证（支持cookies配置）
+    
+    配置文件格式 (config.ini):
+    [bilibili]
+    # 方式1: 完整的Cookie字符串（推荐，从浏览器复制）
+    cookie = 完整的cookie字符串
+    
+    # 方式2: 分别填入各字段
+    sessdata = 你的SESSDATA值
+    buvid3 = 你的BUVID3值
+    bili_jct = 你的BILI_JCT值
+    
+    获取方法：
+    1. 登录B站网页版 (https://www.bilibili.com)
+    2. 按F12打开开发者工具
+    3. 切换到Network(网络)标签
+    4. 刷新页面，点击任意请求（如www.bilibili.com）
+    5. 在Request Headers中找到Cookie字段
+    6. 复制整个Cookie值
+    """
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config.ini')
+    
+    if not os.path.exists(config_path):
+        print("[INFO] 未找到配置文件config.ini，将使用未登录状态下载（画质受限）")
+        print("[INFO] 如需下载高清画质，请创建配置文件config.ini")
+        print("[INFO] 配置文件路径:", os.path.normpath(config_path))
+        return None
+    
+    try:
+        # 直接读取文件，手动解析
+        with open(config_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # 手动解析ini文件
+        cookie = ''
+        sessdata = ''
+        buvid3 = ''
+        bili_jct = ''
+        
+        in_bilibili_section = False
+        for line in content.split('\n'):
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith('[') and line.endswith(']'):
+                in_bilibili_section = (line == '[bilibili]')
+                continue
+            if in_bilibili_section and '=' in line:
+                key, value = line.split('=', 1)
+                key = key.strip().lower()
+                value = value.strip()
+                if key == 'cookie':
+                    cookie = value
+                elif key == 'sessdata':
+                    sessdata = value
+                elif key == 'buvid3':
+                    buvid3 = value
+                elif key == 'bili_jct':
+                    bili_jct = value
+        
+        if cookie:
+            # 从完整cookie字符串中提取各字段
+            for item in cookie.split(';'):
+                item = item.strip()
+                if item.startswith('SESSDATA='):
+                    sessdata = item.split('=')[1]
+                elif item.startswith('buvid3='):
+                    buvid3 = item.split('=')[1]
+                elif item.startswith('bili_jct='):
+                    bili_jct = item.split('=')[1]
+            
+            if not sessdata or not buvid3 or not bili_jct:
+                print("[WARNING] Cookie格式不完整，需要包含SESSDATA, buvid3, bili_jct")
+                return None
+            
+            cred = Credential(sessdata=sessdata, buvid3=buvid3, bili_jct=bili_jct)
+            return cred
+        
+        if not sessdata or not buvid3 or not bili_jct:
+            print("[WARNING] 配置项不完整，需要sessdata, buvid3, bili_jct")
+            return None
+        
+        cred = Credential(sessdata=sessdata, buvid3=buvid3, bili_jct=bili_jct)
+        return cred
+        
+    except Exception as e:
+        print(f"[WARNING] 加载配置文件失败: {e}")
+        return None
+
+
+async def verify_credential(credential: Credential) -> tuple:
+    """
+    验证凭证是否有效
+    
+    Returns:
+        (is_valid, vip_status, level)
+    """
+    try:
+        # 尝试访问需要登录的API来验证凭证
+        from bilibili_api import video
+        v = video.Video(bvid='BV1ux411c7h8', credential=credential)
+        info = await v.get_info()
+        
+        if info and info.get('owner'):
+            # 凭证有效
+            return True, False, 0
+        
+        return False, False, 0
+        
+    except Exception as e:
+        error_str = str(e).lower()
+        if 'auth' in error_str or 'login' in error_str or 'credential' in error_str or '403' in error_str:
+            return False, False, 0
+        # 其他错误可能只是视频不存在，但凭证可能有效
+        return True, False, 0
+    
+    try:
+        config = configparser.ConfigParser()
+        config.read(config_path, encoding='utf-8')
+        
+        if 'bilibili' not in config:
+            print("[WARNING] 配置文件中缺少[bilibili] section")
+            return None
+        
+        # 优先使用完整cookie字段
+        cookie = config.get('bilibili', 'cookie', fallback='').strip()
+        
+        if cookie:
+            # 从完整cookie字符串中提取各字段
+            sessdata = ''
+            buvid3 = ''
+            bili_jct = ''
+            
+            for item in cookie.split(';'):
+                item = item.strip()
+                if item.startswith('SESSDATA='):
+                    sessdata = item.split('=')[1]
+                elif item.startswith('buvid3='):
+                    buvid3 = item.split('=')[1]
+                elif item.startswith('bili_jct='):
+                    bili_jct = item.split('=')[1]
+            
+            if not sessdata or not buvid3 or not bili_jct:
+                print("[WARNING] Cookie格式不完整，需要包含SESSDATA, buvid3, bili_jct")
+                return None
+            
+            print("[INFO] 已从完整Cookie加载登录凭证")
+            cred = Credential(sessdata=sessdata, buvid3=buvid3, bili_jct=bili_jct)
+            print("[INFO] 将尝试下载高清画质")
+            return cred
+        
+        # 兼容旧方式：分别填写各字段
+        sessdata = config.get('bilibili', 'sessdata', fallback='').strip()
+        buvid3 = config.get('bilibili', 'buvid3', fallback='').strip()
+        bili_jct = config.get('bilibili', 'bili_jct', fallback='').strip()
+        
+        if not sessdata or not buvid3 or not bili_jct:
+            print("[WARNING] 配置项不完整，需要sessdata, buvid3, bili_jct")
+            return None
+        
+        cred = Credential(sessdata=sessdata, buvid3=buvid3, bili_jct=bili_jct)
+        print("[INFO] 已加载登录凭证，将尝试下载高清画质")
+        return cred
+        
+    except Exception as e:
+        print(f"[WARNING] 加载配置文件失败: {e}")
+        return None
+
+
+def get_video_codecs(download_info: dict) -> List[Dict]:
+    """获取可用的视频编码列表"""
+    codecs = []
+    if 'dash' in download_info and 'video' in download_info['dash']:
+        for v in download_info['dash']['video']:
+            codecs.append({
+                'id': v.get('id'),
+                'codecs': v.get('codecs', ''),
+                'bandwidth': v.get('bandwidth', 0),
+                'baseUrl': v.get('baseUrl', v.get('base_url', ''))
+            })
+    return codecs
+
+
+def get_quality_name(quality_id: int) -> str:
+    """将画质ID转换为可读名称"""
+    quality_map = {
+        6: '240P',
+        16: '360P',
+        32: '480P',
+        48: '720P',
+        64: '720P+',
+        74: '1080P',
+        80: '1080P+',
+        112: '4K',
+    }
+    return quality_map.get(quality_id, f'{quality_id}P')
+
+
+def select_best_video_stream(urls: list) -> Optional[Dict]:
+    """
+    选择最佳视频流
+    优先级：
+    1. 按画质id选择最高（id越大画质越好：16=360P, 32=480P, 64=720P, 80=1080P）
+    2. 同画质下优先H.264编码（兼容性最好）
+    3. 排除AV1等可能不兼容的编码
+    """
+    video_streams = [u for u in urls if u['type'] == 'video']
+    
+    if not video_streams:
+        return None
+    
+    # 按画质id分组
+    quality_groups = {}
+    for v in video_streams:
+        qid = v.get('quality', 0)
+        if qid not in quality_groups:
+            quality_groups[qid] = []
+        quality_groups[qid].append(v)
+    
+    # 选择最高画质
+    if not quality_groups:
+        return None
+    
+    highest_quality = max(quality_groups.keys())
+    highest_streams = quality_groups[highest_quality]
+    
+    # 在最高画质中优先选择H.264编码
+    h264_streams = [v for v in highest_streams if 'avc' in v.get('codecs', '').lower()]
+    
+    if h264_streams:
+        # 返回带宽最高的
+        return max(h264_streams, key=lambda x: x.get('bandwidth', 0))
+    
+    # 如果没有H.264，排除AV1
+    valid_streams = [v for v in highest_streams if 'av01' not in v.get('codecs', '').lower()]
+    if valid_streams:
+        return max(valid_streams, key=lambda x: x.get('bandwidth', 0))
+    
+    # 返回最高画质的第一个
+    return highest_streams[0]
+
+
+async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge: bool = True, page_index: Optional[int] = None):
     """
     下载视频的完整流程
 
@@ -237,6 +482,7 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
         bvid: BV号
         output_dir: 输出目录（如果为None则使用当前工作目录的downloads文件夹）
         auto_merge: 是否自动合并音视频（默认True）
+        page_index: 指定分P索引（None表示下载所有分P）
     """
     # 确保output_dir是绝对路径，使用当前工作目录
     if output_dir is None:
@@ -261,9 +507,35 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
         else:
             print("[WARNING] 未检测到ffmpeg，将只提供合并命令")
     
+    # 加载登录凭证
+    credential = load_credential()
+    
+    # 验证凭证有效性
+    if credential:
+        print("\n[INFO] 正在验证登录凭证...")
+        is_valid, is_vip, level = await verify_credential(credential)
+        
+        if not is_valid:
+            print("\n" + "=" * 70)
+            print("[WARNING] ⚠️ 登录凭证已失效！")
+            print("=" * 70)
+            print("[INFO] 请重新获取Cookie：")
+            print("  1. 登录B站网页版 (https://www.bilibili.com)")
+            print("  2. 按F12打开开发者工具")
+            print("  3. 切换到Network(网络)标签")
+            print("  4. 刷新页面")
+            print("  5. 点击任意请求，复制Cookie值")
+            print("  6. 更新配置文件:", os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'config.ini')))
+            print("=" * 70)
+            credential = None
+        else:
+            print(f"[INFO] ✓ 登录凭证有效 (用户等级: {level})")
+            if is_vip:
+                print("[INFO] ✓ 检测到大会员，可以下载1080P+高清画质")
+    
     # 1. 获取视频信息
     print("\n[INFO] 获取视频信息...")
-    v = video.Video(bvid=bvid)
+    v = video.Video(bvid=bvid, credential=credential)
     info = await v.get_info()
     
     title = info.get('title', 'unknown')
@@ -274,107 +546,159 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
     print(f"[INFO] UP主: {owner}")
     print(f"[INFO] 时长: {duration}秒")
     
-    # 2. 获取下载链接
-    print("\n[INFO] 获取下载链接...")
-    download_info = await v.get_download_url(page_index=0)
+    # 获取所有分P信息
+    pages = info.get('pages', [])
+    print(f"[INFO] 共有 {len(pages)} 个分P")
     
-    urls = []
+    # 确定要下载的分P列表
+    if page_index is not None:
+        if page_index < 0 or page_index >= len(pages):
+            print(f"[ERROR] 无效的分P索引: {page_index}")
+            return False
+        page_list = [page_index]
+    else:
+        page_list = list(range(len(pages)))
     
-    # 解析DASH格式
-    if 'dash' in download_info:
-        dash = download_info['dash']
-        
-        # 视频流
-        if 'video' in dash:
-            for v_stream in dash['video']:
-                urls.append({
-                    'url': v_stream.get('baseUrl', v_stream.get('base_url', '')),
-                    'quality': v_stream.get('id', 0),
-                    'bandwidth': v_stream.get('bandwidth', 0),
-                    'type': 'video'
-                })
-        
-        # 音频流
-        if 'audio' in dash:
-            for a_stream in dash['audio']:
-                urls.append({
-                    'url': a_stream.get('baseUrl', a_stream.get('base_url', '')),
-                    'quality': a_stream.get('id', 0),
-                    'bandwidth': a_stream.get('bandwidth', 0),
-                    'type': 'audio'
-                })
+    print(f"[INFO] 将下载 {len(page_list)} 个视频")
     
-    if not urls:
-        print("[ERROR] 未找到下载链接")
-        return False
-    
-    # 3. 分离音视频
-    video_streams = [u for u in urls if u['type'] == 'video']
-    audio_streams = [u for u in urls if u['type'] == 'audio']
-    
-    if not video_streams or not audio_streams:
-        print("[ERROR] 未找到完整的音视频流")
-        return False
-    
-    # 选择最佳质量
-    best_video = max(video_streams, key=lambda x: x['bandwidth'])
-    best_audio = max(audio_streams, key=lambda x: x['bandwidth'])
-    
-    print(f"[INFO] 视频画质: {best_video['quality']}P")
-    print(f"[INFO] 音频质量: {best_audio['bandwidth']}bps")
-    
-    # 2. 为每个任务创建子文件夹
+    # 创建主输出目录
     os.makedirs(output_dir, exist_ok=True)
     safe_title = re.sub(r'[\\/:*?"<>|]', '_', title)
-    task_output_dir = os.path.join(output_dir, f"{bvid}_{safe_title}")
-    os.makedirs(task_output_dir, exist_ok=True)
-
-    print(f"[INFO] 任务文件夹: {task_output_dir}")
-
-    # 下载视频（临时文件）
-    video_filename = f"{safe_title}_video.mp4"
-    video_path = os.path.join(task_output_dir, video_filename)
-
-    print(f"\n[INFO] 下载视频: {video_filename}")
-    if not download_file(best_video['url'], video_path):
-        return False
-
-    # 下载音频（临时文件）
-    audio_filename = f"{safe_title}_audio.m4a"
-    audio_path = os.path.join(task_output_dir, audio_filename)
-
-    print(f"\n[INFO] 下载音频: {audio_filename}")
-    if not download_file(best_audio['url'], audio_path):
-        return False
-
-    # 5. 合并音视频
-    final_filename = f"{safe_title}.mp4"
-    final_path = os.path.join(task_output_dir, final_filename)
+    main_output_dir = os.path.join(output_dir, f"{bvid}_{safe_title}")
+    os.makedirs(main_output_dir, exist_ok=True)
     
-    merge_success = False
-    if auto_merge and ffmpeg_path:
-        merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
+    # 2. 下载每个分P
+    total_pages = len(page_list)
+    success_count = 0
+    fail_count = 0
     
-    # 6. 完成
-    print("\n" + "=" * 70)
-    if merge_success:
-        print("✓ 下载并合并完成！")
-        print("=" * 70)
-        print(f"最终文件: {final_filename}")
-        print(f"文件路径: {final_path}")
-        print(f"文件大小: {os.path.getsize(final_path) / 1024 / 1024:.2f} MB")
-    else:
-        print("✓ 下载完成！（未合并）")
-        print("=" * 70)
-        print(f"视频文件: {video_filename}")
-        print(f"音频文件: {audio_filename}")
-        if auto_merge and not ffmpeg_path:
-            print("\n提示: 未检测到ffmpeg，音视频未自动合并")
-            print("请手动安装ffmpeg后运行以下命令合并:")
-            print(f'  ffmpeg -i "{video_filename}" -i "{audio_filename}" -c:v copy -c:a aac "{final_filename}"')
+    for idx, page_idx in enumerate(page_list, 1):
+        print(f"\n{'='*70}")
+        print(f"[INFO] 下载第 {idx}/{total_pages} 个视频 (分P {page_idx + 1})")
+        print(f"{'='*70}")
+        
+        try:
+            page_info = pages[page_idx]
+            page_title = page_info.get('part', f'P{page_idx + 1}')
+            page_duration = page_info.get('duration', 0)
+            print(f"[INFO] 分P标题: {page_title}")
+            print(f"[INFO] 分P时长: {page_duration}秒")
+            
+            # 获取下载链接
+            print("\n[INFO] 获取下载链接...")
+            download_info = await v.get_download_url(page_index=page_idx)
+            
+            urls = []
+            
+            # 解析DASH格式
+            if 'dash' in download_info:
+                dash = download_info['dash']
+                
+                # 视频流
+                if 'video' in dash:
+                    for v_stream in dash['video']:
+                        urls.append({
+                            'url': v_stream.get('baseUrl', v_stream.get('base_url', '')),
+                            'quality': v_stream.get('id', 0),
+                            'bandwidth': v_stream.get('bandwidth', 0),
+                            'codecs': v_stream.get('codecs', ''),
+                            'type': 'video'
+                        })
+                
+                # 音频流
+                if 'audio' in dash:
+                    for a_stream in dash['audio']:
+                        urls.append({
+                            'url': a_stream.get('baseUrl', a_stream.get('base_url', '')),
+                            'quality': a_stream.get('id', 0),
+                            'bandwidth': a_stream.get('bandwidth', 0),
+                            'type': 'audio'
+                        })
+            
+            if not urls:
+                print(f"[ERROR] 分P {page_idx + 1} 未找到下载链接")
+                fail_count += 1
+                continue
+            
+            # 分离音视频
+            video_streams = [u for u in urls if u['type'] == 'video']
+            audio_streams = [u for u in urls if u['type'] == 'audio']
+            
+            if not video_streams or not audio_streams:
+                print(f"[ERROR] 分P {page_idx + 1} 未找到完整的音视频流")
+                fail_count += 1
+                continue
+            
+            # 选择最佳视频流（优先H.264，排除AV1等不兼容编码）
+            best_video = select_best_video_stream(urls)
+            
+            if not best_video:
+                print(f"[ERROR] 分P {page_idx + 1} 无法选择有效的视频流")
+                fail_count += 1
+                continue
+            
+            best_audio = max(audio_streams, key=lambda x: x['bandwidth'])
+            
+            quality_name = get_quality_name(best_video.get('quality', 0))
+            print(f"[INFO] 视频画质: {quality_name} (ID: {best_video.get('quality', 0)})")
+            print(f"[INFO] 视频编码: {best_video.get('codecs', 'unknown')}")
+            print(f"[INFO] 视频码率: {best_video.get('bandwidth', 0) / 1000:.0f} kbps")
+
+            # 所有视频都在同一个合集文件夹中
+            page_num = page_idx + 1
+            safe_page_title = re.sub(r'[\\/:*?"<>|]', '_', page_title)
+            p_safe_title = f"{page_num:02d}_{safe_page_title}"
+            
+            # 下载视频（使用合集文件夹）
+            video_filename = f"{p_safe_title}_video.mp4"
+            video_path = os.path.join(main_output_dir, video_filename)
+            
+            print(f"\n[INFO] 下载视频: {video_filename}")
+            if not download_file(best_video['url'], video_path):
+                fail_count += 1
+                continue
+            
+            # 下载音频
+            audio_filename = f"{p_safe_title}_audio.m4a"
+            audio_path = os.path.join(main_output_dir, audio_filename)
+            
+            print(f"\n[INFO] 下载音频: {audio_filename}")
+            if not download_file(best_audio['url'], audio_path):
+                fail_count += 1
+                continue
+            
+            # 合并音视频
+            final_filename = f"{p_safe_title}.mp4"
+            final_path = os.path.join(main_output_dir, final_filename)
+            
+            merge_success = False
+            if auto_merge and ffmpeg_path:
+                merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
+            
+            if merge_success:
+                print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
+                success_count += 1
+            else:
+                print(f"✓ 分P {page_idx + 1} 下载完成（未合并）: {video_filename}, {audio_filename}")
+                success_count += 1
+                
+        except Exception as e:
+            print(f"[ERROR] 下载分P {page_idx + 1} 失败: {e}")
+            import traceback
+            traceback.print_exc()
+            fail_count += 1
+    
+    # 3. 完成总结
+    print(f"\n{'='*70}")
+    print("下载完成！")
+    print("=" * 70)
+    print(f"总视频数: {total_pages}")
+    print(f"成功下载: {success_count}")
+    print(f"失败数量: {fail_count}")
+    print(f"保存目录: {main_output_dir}")
     print("=" * 70)
     
-    return True
+    return success_count > 0
 
 
 def download_file(url: str, file_path: str) -> bool:
@@ -422,17 +746,20 @@ async def main():
   python scripts/download.py "https://www.bilibili.com/video/BV1mZrKBAEHf/"
   python scripts/download.py "BV1mZrKBAEHf" -o ./downloads
   python scripts/download.py "BV1mZrKBAEHf" --no-merge  # 不自动合并
+  python scripts/download.py "BV1mZrKBAEHf" --page 0  # 只下载第1个分P
 
 说明:
   本脚本使用bilibili-api库直接从B站API下载视频
   自动下载音视频并使用ffmpeg合并
   如果未安装ffmpeg，将提供合并命令
+  支持登录后下载高清画质（需配置config.ini）
         """
     )
     
     parser.add_argument('url', help='Bilibili视频链接或BV号')
     parser.add_argument('-o', '--output', default=None, help='下载输出目录 (默认: 当前工作目录下的downloads文件夹)')
     parser.add_argument('--no-merge', action='store_true', help='禁用自动合并音视频')
+    parser.add_argument('--page', type=int, default=None, help='指定下载的分P编号（从0开始），不指定则下载所有分P')
     
     args = parser.parse_args()
 
@@ -453,7 +780,7 @@ async def main():
 
     # 下载（自动合并，除非指定--no-merge）
     auto_merge = not args.no_merge
-    success = await download_video(bvid, output_dir, auto_merge)
+    success = await download_video(bvid, output_dir, auto_merge, page_index=args.page)
     
     if not success:
         sys.exit(1)

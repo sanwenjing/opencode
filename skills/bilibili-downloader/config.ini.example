@@ -1,0 +1,25 @@
+# Bilibili下载器配置文件
+# 用于登录B站账号以下载高清视频
+# 
+# 获取Cookie方法（简单）：
+# 1. 登录B站网页版 (https://www.bilibili.com)
+# 2. 按F12打开浏览器开发者工具
+# 3. 按F5刷新页面
+# 4. 找到任意一个请求（如www.bilibili.com）
+# 5. 点击该请求，在右侧找到Request Headers
+# 6. 找到Cookie: 这一行，复制后面的完整内容
+# 7. 粘贴到下方cookie=后面
+
+[bilibili]
+# 推荐：直接粘贴完整的Cookie字符串
+cookie = 
+
+# 或分别填入各字段（不推荐，需要手动拆分）
+# sessdata = 
+# buvid3 = 
+# bili_jct = 
+
+# 说明：
+# - 登录后可下载1080P高清视频
+# - 大会员账号可下载1080P+和4K视频
+# - 未登录状态仅能下载480P及以下画质
