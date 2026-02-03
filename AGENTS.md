@@ -59,6 +59,13 @@
   output_path = "data/output.txt"  # Windows上会失败
   ```
 
+## 脚本执行规则（重要）
+- 使用skill的脚本时，禁止使用 `cd` 命令切换到脚本目录执行
+- 必须使用脚本的绝对路径直接执行
+- 正确方式：`python "C:\Users\xxx\skills\skill-name\scripts\script.py"`
+- 错误方式：`cd "C:\Users\xxx\skills\skill-name" && python scripts/script.py`
+- 原因：避免路径污染和执行位置不确定性问题
+
 ## 技能创建规则
 - 创建任何新技能时，默认使用 skill-creator 技能来创建
 - 遵循 skill-creator 的标准流程和命名规范

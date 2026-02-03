@@ -494,6 +494,39 @@ result_path = os.path.join(data_dir, "result.txt")
 # output_path = "/home/user/data/output.txt"  # 仅限Unix/Linux/macOS
 ```
 
+#### 6. 脚本执行规则（重要）
+**规则**: 使用skill的脚本时，禁止使用 `cd` 命令切换到脚本目录执行，必须使用脚本的绝对路径直接执行。
+
+**正确方式**:
+```bash
+# 使用绝对路径执行脚本
+python "C:\Users\xxx\skills\skill-name\scripts\script.py"
+```
+
+**错误方式**:
+```bash
+# 禁止使用 cd 切换到脚本目录执行
+cd "C:\Users\xxx\skills\skill-name" && python scripts/script.py
+```
+
+**原因**:
+- 避免路径污染
+- 避免执行位置不确定性问题
+- 确保输出文件保存到用户期望的位置（当前工作目录）
+- 符合用户全局规则要求
+
+**在SKILL.md中的调用示例**:
+在脚本索引章节中，调用方式必须使用绝对路径格式：
+
+| 脚本名称 | 脚本路径 | 功能描述 | 调用方式 |
+|---------|---------|---------|---------|
+| download.py | scripts/download.py | 视频下载脚本 | `python "C:\Users\Administrator\.config\opencode\skills\bilibili-downloader\scripts\download.py" <视频链接>` |
+
+**验证清单检查项**:
+- [ ] SKILL.md中的调用方式使用绝对路径
+- [ ] 脚本内部使用 `os.getcwd()` 获取输出目录
+- [ ] 脚本不使用 `os.path.dirname(__file__)` 确定输出路径
+
 #### 5. 快速定位指南
 为了帮助调用方快速定位脚本，SKILL.md应包含：
 - 完整的文件树结构图
@@ -588,6 +621,11 @@ license: 专有。LICENSE.txt 包含完整条款
 **输出规则验证**：
 - [ ] 脚本使用 `os.getcwd()` 获取当前工作目录作为输出路径
 - [ ] 输出文件不保存到技能安装目录
+
+**脚本执行规则验证**：
+- [ ] SKILL.md中的调用方式使用绝对路径
+- [ ] 脚本内部使用 `os.getcwd()` 获取输出目录
+- [ ] 脚本不使用 `os.path.dirname(__file__)` 确定输出路径
 
 ## 类别
 开发工具、技能创建、规范验证、技能修复、系统维护
