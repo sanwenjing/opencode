@@ -162,18 +162,7 @@ def install_ffmpeg_guide():
 
 
 def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg_path: Optional[str] = None) -> bool:
-    """
-    使用ffmpeg合并音视频
-    
-    Args:
-        video_path: 视频文件路径
-        audio_path: 音频文件路径
-        output_path: 输出文件路径
-        ffmpeg_path: ffmpeg可执行文件路径（可选）
-    
-    Returns:
-        合并是否成功
-    """
+    """使用ffmpeg合并音视频（同步版本）"""
     if not ffmpeg_path:
         ffmpeg_path = check_ffmpeg()
     
@@ -186,7 +175,6 @@ def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg
         print(f"\n[INFO] 正在合并音视频...")
         print(f"[INFO] 使用ffmpeg: {ffmpeg_path}")
         
-        # 构建ffmpeg命令
         cmd = [
             ffmpeg_path,
             '-i', video_path,
@@ -194,13 +182,12 @@ def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg
             '-c:v', 'copy',
             '-c:a', 'aac',
             '-strict', 'experimental',
-            '-y',  # 覆盖输出文件
+            '-y',
             output_path
         ]
         
         print(f"[INFO] 执行命令: {' '.join(cmd)}")
         
-        # 执行命令
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -210,7 +197,6 @@ def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg
         )
         
         if result.returncode == 0:
-            # 合并成功，删除原文件
             print("[INFO] 合并成功，清理临时文件...")
             try:
                 os.remove(video_path)
@@ -228,6 +214,12 @@ def merge_video_audio(video_path: str, audio_path: str, output_path: str, ffmpeg
     except Exception as e:
         print(f"[ERROR] 合并过程出错: {e}")
         return False
+
+
+async def merge_video_audio_async(video_path: str, audio_path: str, output_path: str, ffmpeg_path: Optional[str] = None) -> bool:
+    """使用ffmpeg合并音视频（异步版本）"""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, lambda: merge_video_audio(video_path, audio_path, output_path, ffmpeg_path))
 
 
 def load_credential():
@@ -734,15 +726,15 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                         print(f"🗑️ 清理不完整的音频文件: {audio_filename}")
                     
                     print(f"[INFO] 下载视频...")
-                    if not download_file(best_video['url'], video_path):
+                    if not await download_file_async(best_video['url'], video_path):
                         success = False
                         error_msg = "下载视频失败"
                         if retry_count < max_retries - 1:
                             continue
                         return success, error_msg
-                    
+
                     print(f"[INFO] 下载音频...")
-                    if not download_file(best_audio['url'], audio_path):
+                    if not await download_file_async(best_audio['url'], audio_path):
                         success = False
                         error_msg = "下载音频失败"
                         if retry_count < max_retries - 1:
@@ -751,7 +743,7 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                     
                     # 合并音视频
                     if auto_merge and ffmpeg_path:
-                        merge_success = merge_video_audio(video_path, audio_path, final_path, ffmpeg_path)
+                        merge_success = await merge_video_audio_async(video_path, audio_path, final_path, ffmpeg_path)
                         if merge_success:
                             print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
                         else:
@@ -810,7 +802,7 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
 
 
 def download_file(url: str, file_path: str, check_existing: bool = True) -> bool:
-    """下载单个文件
+    """下载单个文件（同步版本）
     
     Args:
         url: 下载链接
@@ -826,7 +818,6 @@ def download_file(url: str, file_path: str, check_existing: bool = True) -> bool
             'Referer': 'https://www.bilibili.com',
         }
         
-        # 检查文件是否已存在
         if check_existing and os.path.exists(file_path):
             existing_size = os.path.getsize(file_path)
             print(f"\n  ⏭️ 文件已存在，跳过下载: {os.path.basename(file_path)} ({existing_size / 1024 / 1024:.2f} MB)")
@@ -838,7 +829,6 @@ def download_file(url: str, file_path: str, check_existing: bool = True) -> bool
             total_size = int(response.headers.get('Content-Length', 0))
             downloaded = 0
             
-            # 支持断点续传：如果文件存在，从断点继续
             file_mode = 'ab' if os.path.exists(file_path) else 'wb'
             existing_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
             
@@ -868,6 +858,21 @@ def download_file(url: str, file_path: str, check_existing: bool = True) -> bool
     except Exception as e:
         print(f"\n  ✗ 下载失败: {e}")
         return False
+
+
+async def download_file_async(url: str, file_path: str, check_existing: bool = True) -> bool:
+    """下载单个文件（异步版本，使用线程池执行同步下载）
+    
+    Args:
+        url: 下载链接
+        file_path: 保存路径
+        check_existing: 是否检查已存在的文件（默认True）
+    
+    Returns:
+        下载是否成功
+    """
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, lambda: download_file(url, file_path, check_existing))
 
 
 async def main():
