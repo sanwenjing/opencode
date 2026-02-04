@@ -22,7 +22,7 @@ import argparse
 import subprocess
 import shutil
 import configparser
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Union
 from bilibili_api import video, Credential
 
 
@@ -746,8 +746,25 @@ async def download_video(bvid: str, output_dir: Optional[str] = None, auto_merge
                         merge_success = await merge_video_audio_async(video_path, audio_path, final_path, ffmpeg_path)
                         if merge_success:
                             print(f"✓ 分P {page_idx + 1} 下载完成: {final_filename}")
+                            # 验证合并后的文件
+                            print(f"  🔍 正在验证文件完整性...")
+                            is_valid, msg = verify_mp4_header(final_path)
+                            if is_valid:
+                                print(f"  ✓ 文件验证通过")
+                            else:
+                                print(f"  ⚠️ 文件验证失败: {msg}")
+                                # 尝试修复
+                                repair_success = await verify_and_repair_video(final_path, ffmpeg_path)
+                                if repair_success:
+                                    print(f"  ✓ 文件已自动修复")
+                                else:
+                                    print(f"  ✗ 文件修复失败，需要重新下载")
+                                    error_msg = f"文件损坏，修复失败"
+                                    return False, error_msg
                         else:
-                            print(f"✓ 分P {page_idx + 1} 下载完成（未合并）: {video_filename}, {audio_filename}")
+                            print(f"✗ 分P {page_idx + 1} 合并失败: {video_filename}, {audio_filename}")
+                            error_msg = "音视频合并失败"
+                            return False, error_msg
                     else:
                         print(f"✓ 分P {page_idx + 1} 下载完成: {video_filename}, {audio_filename}")
                     
@@ -873,6 +890,161 @@ async def download_file_async(url: str, file_path: str, check_existing: bool = T
     """
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, lambda: download_file(url, file_path, check_existing))
+
+
+def verify_video_file(file_path: str, ffmpeg_path: Optional[str] = None) -> tuple:
+    """验证视频文件是否完整有效
+    
+    Args:
+        file_path: 视频文件路径
+        ffmpeg_path: ffmpeg可执行文件路径
+    
+    Returns:
+        (is_valid, error_msg)
+    """
+    if not os.path.exists(file_path):
+        return False, "文件不存在"
+    
+    if ffmpeg_path is None:
+        ffmpeg_exec = check_ffmpeg()
+    else:
+        ffmpeg_exec = ffmpeg_path
+    
+    if not ffmpeg_exec:
+        return False, "ffmpeg不可用，无法验证"
+    
+    try:
+        result = subprocess.run(
+            [ffmpeg_exec, '-v', 'error', '-i', file_path, '-f', 'null', '-'],
+            capture_output=True,
+            text=True,
+            encoding='utf-8',
+            errors='replace',
+            timeout=60
+        )
+        
+        if result.returncode == 0:
+            return True, ""
+        
+        error_output = result.stderr.strip()
+        if 'moov atom not found' in error_output:
+            return False, "moov atom缺失，文件损坏"
+        elif 'Invalid data' in error_output:
+            return False, "文件数据无效"
+        elif 'duration' in error_output.lower() or 'time' in error_output.lower():
+            return False, f"时长或时间错误: {error_output[:200]}"
+        else:
+            return False, f"验证错误: {error_output[:200]}"
+            
+    except subprocess.TimeoutExpired:
+        return False, "验证超时"
+    except Exception as e:
+        return False, f"验证异常: {str(e)}"
+
+
+def verify_mp4_header(file_path: str) -> tuple:
+    """快速验证MP4文件头
+    
+    Args:
+        file_path: 文件路径
+    
+    Returns:
+        (is_valid, message)
+    """
+    try:
+        with open(file_path, 'rb') as f:
+            header = f.read(100)
+        
+        if len(header) < 8:
+            return False, f"文件太短 ({len(header)} bytes)"
+        
+        if header[4:8] != b'ftyp':
+            return False, f"无效的MP4头 (expected ftyp, got {header[4:8]})"
+        
+        if b'mdat' not in header and b'moov' not in header:
+            return False, "缺少mdat或moov atom"
+        
+        return True, "MP4头有效"
+        
+    except Exception as e:
+        return False, f"读取文件失败: {str(e)}"
+
+
+async def verify_and_repair_video(video_path: str, ffmpeg_path: Optional[str] = None, max_retry: int = 2) -> bool:
+    """验证并尝试修复视频文件
+    
+    Args:
+        video_path: 视频文件路径
+        ffmpeg_path: ffmpeg路径
+        max_retry: 最大重试次数
+    
+    Returns:
+        是否修复成功或文件有效
+    """
+    ffmpeg_exec = ffmpeg_path if ffmpeg_path else check_ffmpeg()
+    
+    if not ffmpeg_exec:
+        return False
+    
+    for attempt in range(max_retry + 1):
+        # 快速检查MP4头
+        is_valid, msg = verify_mp4_header(video_path)
+        if not is_valid:
+            print(f"  ⚠️ MP4头验证失败: {msg}")
+            if attempt < max_retry:
+                print(f"  🔄 尝试修复 (尝试 {attempt + 1}/{max_retry + 1})...")
+                # 尝试使用ffmpeg重新封装
+                temp_path = video_path + '.temp.mp4'
+                try:
+                    result = subprocess.run(
+                        [ffmpeg_exec, '-i', video_path, '-c', 'copy', '-y', temp_path],
+                        capture_output=True,
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace',
+                        timeout=120
+                    )
+                    if result.returncode == 0:
+                        os.remove(video_path)
+                        os.rename(temp_path, video_path)
+                        print(f"  ✓ 文件已修复")
+                        continue
+                except Exception as e:
+                    print(f"  ✗ 修复失败: {e}")
+            else:
+                print(f"  ✗ 无法修复文件")
+                return False
+        else:
+            # 使用ffmpeg深度验证
+            is_valid, error_msg = verify_video_file(video_path, ffmpeg_exec if ffmpeg_exec else "")
+            if is_valid:
+                return True
+            else:
+                print(f"  ⚠️ FFmpeg验证失败: {error_msg}")
+                if attempt < max_retry:
+                    print(f"  🔄 尝试重新封装 (尝试 {attempt + 1}/{max_retry + 1})...")
+                    temp_path = video_path + '.temp.mp4'
+                    try:
+                        result = subprocess.run(
+                            [ffmpeg_exec, '-i', video_path, '-c', 'copy', '-y', temp_path],
+                            capture_output=True,
+                            text=True,
+                            encoding='utf-8',
+                            errors='replace',
+                            timeout=120
+                        )
+                        if result.returncode == 0:
+                            os.remove(video_path)
+                            os.rename(temp_path, video_path)
+                            print(f"  ✓ 文件已修复")
+                            continue
+                    except Exception as e:
+                        print(f"  ✗ 修复失败: {e}")
+                else:
+                    print(f"  ✗ 无法修复文件")
+                    return False
+    
+    return True
 
 
 async def main():
