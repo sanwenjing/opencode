@@ -2,6 +2,7 @@
 name: audio-encoding-fixer
 description: 专业的音频文件编码修复工具，解决音乐文件标题和艺术家乱码问题。支持检测和修复MP3、WMA等音频文件的文件名和ID3标签编码问题。自动识别GBK、UTF-8等多种编码格式，提供批量修复和手动修复选项，确保音乐库元数据正确显示。
 license: 专有。LICENSE.txt 包含完整条款
+version: 1.0.0
 ---
 
 ## Audio Encoding Fixer - 音频文件编码修复工具

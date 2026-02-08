@@ -2,6 +2,7 @@
 name: filename-to-music-tags
 description: 专业的音乐文件标签提取和写入工具。从音乐文件名自动提取歌曲名、艺术家信息，并写入到ID3标签的标题(TIT2)、艺术家(TPE1)和唱片集(TALB)字段中。支持MP3、WMA、FLAC等多种音频格式，使用UTF-8编码确保中文显示正常。适用于整理音乐库、修复标签信息、批量处理音乐文件元数据。
 license: 专有。LICENSE.txt 包含完整条款
+version: 1.0.0
 ---
 
 ## Filename To Music Tags - 音乐文件名标签提取工具

@@ -3,18 +3,19 @@ name: bilibili-downloader
 description: Bilibili视频下载器，使用bilibili-api库直接从B站API下载视频。全自动下载，无需浏览器，支持多种清晰度选择。适用于Windows、MacOS、Linux平台。
 license: 专有。LICENSE.txt 包含完整条款
 compatibility:
-  - Windows
-  - MacOS
-  - Linux
+- Windows
+- MacOS
+- Linux
 metadata:
-  version: "2.1.0"
+  version: 2.1.0
   author: OpenCode
   tags:
-    - bilibili
-    - video-download
-    - bilibili-api
-    - download-manager
-    - automation
+  - bilibili
+  - video-download
+  - bilibili-api
+  - download-manager
+  - automation
+version: 1.0.0
 ---
 
 # Bilibili视频下载器

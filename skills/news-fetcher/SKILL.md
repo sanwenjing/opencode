@@ -1,7 +1,8 @@
 ---
 name: news-fetcher
-description: "技能工具 - 专业的技能工具"
+description: 技能工具 - 专业的技能工具
 license: 专有。LICENSE.txt 包含完整条款
+version: 1.0.0
 ---
 
 ---
