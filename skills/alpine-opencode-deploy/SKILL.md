@@ -2,7 +2,7 @@
 name: alpine-opencode-deploy
 description: 在远程Alpine Linux服务器上自动部署和安装OpenCode AI编程助手，经过2026-02-08验证的最简部署流程
 license: 专有。LICENSE.txt 包含完整条款
-version: 1.0.0
+version: 1.1.0
 ---
 
 ## 我做什么
@@ -13,7 +13,7 @@ version: 1.0.0
 
 1. **SSH连接管理** - 通过SSH连接到远程Alpine服务器
 2. **环境准备** - 安装bash和curl
-3. **Node.js安装** - 下载完整Node.js包（含npm）
+3. **Node.js安装** - 使用Alpine apk包管理器安装
 4. **OpenCode安装** - npm全局安装
 5. **路径优化** - 找到正确的musl版本，创建符号链接
 
@@ -25,34 +25,37 @@ version: 1.0.0
 # 1. SSH连接并安装工具
 apk add --no-cache bash curl
 
-# 2. 下载完整Node.js包（包含npm）
-curl -L -o node.tar.xz https://nodejs.org/dist/v20.10.0/node-v20.10.0-linux-x64.tar.xz
+# 2. 使用Alpine包管理器安装Node.js和npm
+apk add --no-cache nodejs npm
 
-# 3. 解压安装到系统
-tar -xf node.tar.xz
-cp -r node-v20.10.0-linux-x64/bin/* /usr/local/bin/
-cp -r node-v20.10.0-linux-x64/lib/* /usr/local/lib/
-
-# 4. npm全局安装OpenCode
+# 3. npm全局安装OpenCode
 npm install -g opencode-ai
 
-# 5. 找到正确的musl版本
-find /usr/lib/node_modules/opencode-ai -name opencode -type f
+# 4. 找到正确的musl版本
+find /usr/local/lib/node_modules/opencode-ai -name opencode -type f
 # 通常是: opencode-linux-x64-musl/bin/opencode
 
-# 6. 创建符号链接
-ln -sf /usr/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode /usr/local/bin/opencode
+# 5. 创建符号链接
+ln -sf /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode /usr/local/bin/opencode
 
-# 7. 验证
+# 6. 验证
 opencode --version
 ```
+
+### 安装版本
+
+| 组件 | 版本 |
+|------|------|
+| Node.js | v24.13.0 |
+| npm | 11.6.3 |
+| OpenCode | 1.1.53 |
 
 ### 关键经验总结
 
 | 步骤 | 经验 | 说明 |
 |------|------|------|
-| 1 | 不要用Alpine的nodejs包 | 不包含npm |
-| 2 | 用完整Node.js包 | x64版本包含npm 10.2.3 |
+| 1 | 使用Alpine apk安装 | 直接安装官方包，版本较新 |
+| 2 | apk安装的Node.js位于/usr/bin/node | 与手动安装路径不同 |
 | 3 | npm安装opencode-ai | 自动下载正确的musl版本 |
 | 4 | 找到正确的二进制 | opencode-linux-x64-musl |
 | 5 | 创建符号链接 | 方便全局访问 |
@@ -150,22 +153,20 @@ OpenCode部署日志
 ============================================================
 目标服务器: 192.168.31.150:2222
 
-[1/6] 连接 192.168.31.150:2222...
+[1/5] 连接 192.168.31.150:2222...
 SSH连接成功!
 
-[2/6] 安装 bash 和 curl...
+[2/5] 安装 bash 和 curl...
 
-[3/6] 下载完整Node.js包...
+[3/5] 使用Alpine包管理器安装Node.js和npm...
+v24.13.0
+11.6.3
 
-[4/6] 解压安装Node.js和npm...
-v20.10.0
-10.2.3
+[4/5] 安装 OpenCode...
+added 5 packages in 10s
 
-[5/6] 安装 OpenCode...
-added 5 packages in 12s
-
-[6/6] 查找正确的OpenCode...
-找到: /usr/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode
+[5/5] 查找正确的OpenCode...
+找到: /usr/local/lib/node_modules/opencode-ai/node_modules/opencode-linux-x64-musl/bin/opencode
 版本: 1.1.53
 
 ============================================================
@@ -206,11 +207,12 @@ else:
 # 返回值说明
 # result = {
 #     "success": True/False,           # 是否成功
-#     "hostname": "192.168.31.150",    # 服务器地址
-#     "port": 2222,                   # SSH端口
+#     "hostname": "192.168.31.150",   # 服务器地址
+#     "port": 2222,                    # SSH端口
 #     "node_version": "v24.13.0",     # Node.js版本
+#     "npm_version": "11.6.3",        # npm版本
 #     "opencode_path": "...",         # OpenCode安装路径
-#     "opencode_version": "1.1.53",    # OpenCode版本
+#     "opencode_version": "1.1.53",   # OpenCode版本
 #     "error": None,                   # 错误信息
 #     "log_file": "..."               # 日志文件路径
 # }

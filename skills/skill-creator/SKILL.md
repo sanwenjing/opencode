@@ -4,7 +4,7 @@ description: 严格验证并创建符合OpenCode规范的新技能，同时提�
   创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式，(5) 版本管理和变更日志记录。当需要修复技能时用于：(1)
   诊断技能系统问题，(2) 修复YAML front matter缺失，(3) 清理技能缓存，(4) 验证技能完整性，(5) 修复名称不一致等问题，(6) 更新技能版本和变更日志
 license: 专有。LICENSE.txt 包含完整条款
-version: 1.0.0
+version: 1.1.0
 ---
 
 ## 我做什么
@@ -252,6 +252,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - 修复删除主机时的bug
 ```
+
+## 技能修改规则
+
+### 自动更新要求
+
+修改任何现有技能时，必须自动更新以下文件：
+
+1. **SKILL.md** - 更新 `version` 字段
+2. **CHANGELOG.md** - 添加新版本记录
+
+### 版本号规范
+
+遵循语义化版本规范（Semantic Versioning v2.0.0）：
+
+| 版本类型 | 规则 | 示例 |
+|---------|------|------|
+| **MAJOR** | 重大功能变更或不兼容的API修改 | 1.0.0 → 2.0.0 |
+| **MINOR** | 新增功能（向下兼容） | 1.0.0 → 1.1.0 |
+| **PATCH** | Bug修复或小优化 | 1.0.0 → 1.0.1 |
+
+### 版本号判断标准
+
+- **重大功能变更或重构** → MINOR + 1（重置PATCH为0）
+- **新功能添加** → MINOR + 1
+- **Bug修复或优化** → PATCH + 1
+
+### CHANGELOG记录要求
+
+每次版本更新必须在 `CHANGELOG.md` 中记录：
+
+```markdown
+## [1.1.0] - 2026-02-08
+
+### Added
+- 新增xxx功能
+
+### Changed
+- 优化xxx实现
+
+### Fixed
+- 修复xxx问题
+
+### Verified
+- 验证环境：xxx
+```
+
+### 技能修改自动流程
+
+修改技能时，Claude 必须执行以下步骤：
+
+1. **判断变更类型**：根据修改内容确定版本号递增类型
+2. **读取当前版本**：从 SKILL.md 中获取当前版本号
+3. **计算新版本**：按规范递增版本号
+4. **更新 SKILL.md**：修改 version 字段
+5. **更新 CHANGELOG.md**：添加新版本记录，包括：
+   - 版本号
+   - 修改日期
+   - 变更内容分类（Added/Changed/Fixed/Verified）
+   - 具体描述
+6. **验证完整性**：确认两个文件都已正确更新
+
+### 版本号判断示例
+
+| 修改内容 | 版本类型 | 原因 |
+|---------|---------|------|
+| 添加新功能函数 | MINOR | 新增功能 |
+| 优化现有代码 | PATCH | 优化改进 |
+| 修复bug | PATCH | Bug修复 |
+| 重构API | MINOR | 重大变更 |
+| 更新文档 | PATCH | 文档优化 |
+| 添加验证清单 | MINOR | 功能增强 |
 
 #### YAML Front Matter 版本字段
 

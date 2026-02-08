@@ -71,6 +71,28 @@
 - 只有当没有匹配的技能时才自行处理任务
 - 通过 `skill` 工具加载并使用对应的技能来处理特定领域的任务
 
-## 技能创建规则
-- 创建任何新技能时，默认使用 skill-creator 技能来创建
+## 技能管理规则（重要）
+
+所有技能相关的操作（创建、修改、版本更新）**必须**通过 skill-creator 技能来处理：
+
+### 技能创建
+- 创建新技能时，使用 skill-creator 技能
 - 遵循 skill-creator 的标准流程和命名规范
+- 自动创建标准目录结构和初始文件
+
+### 技能修改与版本管理
+- **禁止**直接修改技能的版本号和CHANGELOG
+- 修改技能后，使用 skill-creator 的 version_manager.py 脚本更新版本
+- 所有版本号递增和CHANGELOG记录由 skill-creator 统一管理
+
+### 使用方式
+```bash
+# 创建新技能
+python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\create_skill.py" <技能名> <描述>
+
+# 更新技能版本（自动更新版本号和CHANGELOG）
+python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --bump <patch|minor|major> --message "变更描述"
+
+# 查看技能版本信息
+python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --info
+```
