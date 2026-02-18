@@ -1,0 +1,4 @@
+# Python依赖列表
+# 安装命令: pip install -r requirements.txt
+
+# 邮件发送使用Python内置库，无需额外依赖
