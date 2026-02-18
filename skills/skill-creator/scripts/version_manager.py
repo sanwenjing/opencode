@@ -12,7 +12,7 @@ import semver
 from datetime import datetime
 from typing import Optional
 
-SKILLS_DIR = r"C:\Users\Administrator\.config\opencode\skills"
+SKILLS_DIR = os.path.join(os.path.expanduser("~"), ".config", "opencode", "skills")
 
 
 def get_skill_path(skill_name: str) -> str:
