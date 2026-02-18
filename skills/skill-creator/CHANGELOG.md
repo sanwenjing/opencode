@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-19
+
+### Added
+- 新增技能依赖声明功能，支持创建新技能时声明依赖其他已有技能
 ## [1.2.0] - 2026-02-18
 
 ### Added
@@ -18,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 更新验证清单，添加config目录验证项
 - 更新输出标准说明
 
+## [1.3.0] - 2026-02-19
+
+### Added
+- 新增技能依赖声明功能，支持创建新技能时声明依赖其他已有技能
 ## [1.1.0] - 2026-02-08
 
 ### Added
@@ -27,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 添加技能修改自动流程，明确Claude必须执行的6个步骤
 - 添加版本号判断示例表，帮助理解版本升级规则
 
+## [1.3.0] - 2026-02-19
+
+### Added
+- 新增技能依赖声明功能，支持创建新技能时声明依赖其他已有技能
 ## [1.0.0] - 2026-02-08
 
 ### Added

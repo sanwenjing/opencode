@@ -74,17 +74,36 @@ class SkillCreator:
             return False
         return True
     
-    def generate_skill_md(self, skill_name: str, description: str) -> str:
+    def generate_skill_md(self, skill_name: str, description: str, skill_depends: Optional[List[dict]] = None) -> str:
         """生成SKILL.md文件内容"""
         sep = self.path_sep
         path_sep_display = '/' if sep == '/' else '\\\\'
         
+        depends_block = ""
+        if skill_depends:
+            depends_lines = []
+            for dep in skill_depends:
+                skill_name_dep = dep.get('skill', '')
+                min_version = dep.get('min_version', '')
+                if min_version:
+                    depends_lines.append(f"  - skill: {skill_name_dep}\n    min_version: \"{min_version}\"")
+                else:
+                    depends_lines.append(f"  - skill: {skill_name_dep}")
+            depends_block = "depends:\n" + "\n".join(depends_lines) + "\n"
+        
+        frontmatter_parts = [
+            f"name: {skill_name}",
+            f"description: \"{description}\"",
+        ]
+        if depends_block:
+            frontmatter_parts.append(depends_block.rstrip())
+        frontmatter_parts.append("license: 专有。LICENSE.txt 包含完整条款")
+        
+        frontmatter = "---\n" + "\n".join(frontmatter_parts) + "\n---"
+        
         # 目录结构使用斜杠显示（更通用），但实际路径使用系统分隔符
         content = f"""---
-name: {skill_name}
-description: "{description}"
-license: 专有。LICENSE.txt 包含完整条款
----
+{frontmatter}
 
 ## 我做什么
 
@@ -104,7 +123,7 @@ license: 专有。LICENSE.txt 包含完整条款
 ├── config/               # 配置文件目录（保存技能脚本使用的所有配置文件）
 ├── scripts/              # 脚本目录
 │   ├── main.py          # 主执行脚本（位于 scripts/main.py）
-│   └── requirements.txt # Python依赖文件（位于 scripts/requirements.txt）
+│   └── requirements.txt # Python依赖文件（位于 scripts/main.py）
 └── LICENSE.txt          # 许可证文件
 ```
 
@@ -333,6 +352,7 @@ if __name__ == '__main__':
     
     def create_skill(self, skill_name: str, description: str, 
                      dependencies: Optional[List[str]] = None,
+                     skill_depends: Optional[List[dict]] = None,
                      dry_run: bool = False) -> bool:
         """创建新技能"""
         print(f"正在创建技能: {skill_name}")
@@ -392,7 +412,7 @@ if __name__ == '__main__':
             print(f"创建文件: config/config.example.json")
             
             # 创建SKILL.md
-            skill_md_content = self.generate_skill_md(skill_name, description)
+            skill_md_content = self.generate_skill_md(skill_name, description, skill_depends)
             skill_md_path = os.path.join(skill_path, "SKILL.md")
             with open(skill_md_path, 'w', encoding='utf-8') as f:
                 f.write(skill_md_content)
@@ -483,13 +503,16 @@ def main():
   # 创建新技能
   python scripts/create_skill.py my-new-skill "这是一个新技能的描述"
   
-  # 创建技能并指定依赖
+  # 创建技能并指定Python依赖
   python scripts/create_skill.py my-new-skill "技能描述" --deps pyyaml requests
+  
+  # 创建技能并指定技能依赖（声明依赖其他已有技能）
+  python scripts/create_skill.py my-new-skill "技能描述" --skill-deps email-sender:1.0.0 xlsx
   
   # 模拟运行（不实际创建）
   python scripts/create_skill.py my-new-skill "描述" --dry-run
   
-  # 更新现有技能的依赖
+  # 更新现有技能的Python依赖
   python scripts/create_skill.py --update-deps my-existing-skill --deps numpy pandas
         """
     )
@@ -498,8 +521,9 @@ def main():
     parser.add_argument('description', nargs='?', help='技能描述（1-1024字符）')
     parser.add_argument('--skills-dir', default="", help='技能目录路径（默认: ../../）')
     parser.add_argument('--deps', nargs='+', help='Python依赖包列表（如: pyyaml requests）')
+    parser.add_argument('--skill-deps', nargs='+', help='技能依赖列表（如: email-sender:1.0.0 xlsx，格式: 技能名 或 技能名:最低版本）')
     parser.add_argument('--dry-run', action='store_true', help='模拟运行，不实际创建文件')
-    parser.add_argument('--update-deps', action='store_true', help='更新现有技能的依赖')
+    parser.add_argument('--update-deps', action='store_true', help='更新现有技能的Python依赖')
     
     args = parser.parse_args()
     
@@ -523,10 +547,22 @@ def main():
         parser.print_help()
         return 1
     
+    # 解析技能依赖参数
+    skill_depends = None
+    if args.skill_deps:
+        skill_depends = []
+        for dep in args.skill_deps:
+            if ':' in dep:
+                skill_name_dep, min_version = dep.split(':', 1)
+                skill_depends.append({'skill': skill_name_dep, 'min_version': min_version})
+            else:
+                skill_depends.append({'skill': dep, 'min_version': ''})
+    
     success = creator.create_skill(
         skill_name=args.name,
         description=args.description,
         dependencies=args.deps,
+        skill_depends=skill_depends,
         dry_run=args.dry_run
     )
     

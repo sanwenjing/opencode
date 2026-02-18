@@ -4,7 +4,7 @@ description: 严格验证并创建符合OpenCode规范的新技能，同时提�
   创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式，(5) 版本管理和变更日志记录。当需要修复技能时用于：(1)
   诊断技能系统问题，(2) 修复YAML front matter缺失，(3) 清理技能缓存，(4) 验证技能完整性，(5) 修复名称不一致等问题，(6) 更新技能版本和变更日志
 license: 专有。LICENSE.txt 包含完整条款
-version: 1.2.0
+version: 1.3.0
 ---
 
 ## 我做什么
@@ -434,6 +434,49 @@ skill-creator/
 - [ ] SKILL.md中的调用方式使用绝对路径
 - [ ] 脚本内部使用 `os.getcwd()` 获取输出目录
 - [ ] 脚本不使用 `os.path.dirname(__file__)` 确定输出路径
+
+### 技能依赖声明规则
+当新技能需要使用其他已有技能的功能时，可以声明对其他技能的依赖，避免重复开发。
+
+**声明格式**：
+在 SKILL.md 的 YAML front matter 中使用 `depends` 字段声明依赖：
+
+```yaml
+---
+name: my-skill
+description: "技能描述"
+depends:
+  - skill: skill-name
+    min_version: "1.0.0"
+license: 专有。LICENSE.txt 包含完整条款
+---
+```
+
+**依赖字段说明**：
+| 字段 | 类型 | 必填 | 说明 |
+|-----|------|-----|------|
+| `skill` | string | 是 | 依赖的技能名称 |
+| `min_version` | string | 否 | 最低版本号（语义化版本格式） |
+
+**使用示例**：
+```yaml
+depends:
+  - skill: email-sender
+    min_version: "1.2.0"
+  - skill: xlsx
+    min_version: "1.0.0"
+```
+
+**创建技能时声明依赖**：
+```bash
+# 格式: 技能名:最低版本 或 技能名
+python scripts/create_skill.py my-new-skill "描述" --skill-deps email-sender:1.0.0 xlsx
+```
+
+**注意事项**：
+- 声明依赖后，可以在脚本中通过 subprocess 调用依赖技能的脚本
+- 建议使用绝对路径调用
+- 依赖检查应在脚本运行时进行，确保版本兼容
 
 ## 类别
 开发工具、技能创建、规范验证、技能修复、系统维护
