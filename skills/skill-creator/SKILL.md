@@ -4,7 +4,7 @@ description: 严格验证并创建符合OpenCode规范的新技能，同时提�
   创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式，(5) 版本管理和变更日志记录。当需要修复技能时用于：(1)
   诊断技能系统问题，(2) 修复YAML front matter缺失，(3) 清理技能缓存，(4) 验证技能完整性，(5) 修复名称不一致等问题，(6) 更新技能版本和变更日志
 license: 专有。LICENSE.txt 包含完整条款
-version: 1.1.0
+version: 1.2.0
 ---
 
 ## 我做什么
@@ -20,10 +20,11 @@ version: 1.1.0
 - **YAML frontmatter验证**：确保所有必需字段存在且格式正确
 
 #### 创建功能
-- 创建标准目录结构：`技能名/SKILL.md` 和 `技能名/scripts/`
+- 创建标准目录结构：`技能名/SKILL.md`、`技能名/config/` 和 `技能名/scripts/`
 - 生成符合规范的SKILL.md模板文件
 - 自动填充必需的YAML frontmatter字段
 - 提供可选字段的标准模板
+- 创建config目录用于存放技能脚本使用的所有配置文件
 - 创建scripts目录用于存放所有脚本文件
 
 #### 错误处理
@@ -345,6 +346,7 @@ license: 专有。LICENSE.txt 包含完整条款
 skill-creator/
 ├── SKILL.md              # 本技能主配置文件
 ├── CHANGELOG.md          # 版本变更日志
+├── config/               # 配置文件目录（保存技能脚本使用的所有配置文件）
 ├── scripts/              # 脚本目录
 │   ├── create_skill.py  # 主创建脚本：创建符合规范的新技能
 │   ├── skill_fixer.py   # 主修复脚本：完整诊断和修复功能
@@ -353,6 +355,15 @@ skill-creator/
 │   └── quick_fix.py     # 快速修复脚本：简化常见问题修复
 └── LICENSE.txt          # 许可证文件
 ```
+
+### 配置文件目录（config/）
+
+所有技能脚本使用的配置文件都应放在 `config/` 目录下，例如：
+- API 配置文件（如 config/api_config.json）
+- 模板文件（如 config/templates/）
+- 数据文件（如 config/data/）
+
+脚本中加载配置文件时应使用绝对路径或相对于当前工作目录的路径。
 
 ## 脚本索引
 
@@ -371,9 +382,10 @@ skill-creator/
 ## 输出标准
 
 ### 创建技能时的输出
-- 标准目录结构：`技能名/SKILL.md` 和 `技能名/scripts/`
+- 标准目录结构：`技能名/SKILL.md`、`技能名/config/` 和 `技能名/scripts/`
 - 规范的SKILL.md文件，包含完整的YAML front matter和脚本索引
 - 所有文件使用UTF-8编码
+- config 目录下会创建一个 config.example.json 示例配置文件
 
 ### 修复技能时的输出
 - 诊断报告：显示发现的问题分类（critical/high/medium/low）
@@ -400,6 +412,7 @@ skill-creator/
 - [ ] SKILL.md文件编码为UTF-8
 
 **目录结构验证**：
+- [ ] config目录已创建（用于存放配置文件）
 - [ ] scripts目录已创建
 - [ ] requirements.txt文件已创建（位于scripts/目录）
 - [ ] 所有脚本存放在scripts目录下

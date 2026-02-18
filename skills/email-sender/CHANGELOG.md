@@ -3,7 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning (https://semver.org/spec/v2.0.0.html).
+
+## [1.2.0] - 2026-02-18
+
+### Added
+- 新增config目录，用于存放配置文件
+- 新增config.example.json配置文件示例
+
+### Changed
+- 更新目录结构说明，包含config目录
+- 更新验证清单，添加config目录验证项
 
 ## [1.1.0] - 2026-02-18
 

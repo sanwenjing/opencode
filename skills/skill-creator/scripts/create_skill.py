@@ -101,6 +101,7 @@ license: 专有。LICENSE.txt 包含完整条款
 ```
 {skill_name}/
 ├── SKILL.md              # 技能主配置文件
+├── config/               # 配置文件目录（保存技能脚本使用的所有配置文件）
 ├── scripts/              # 脚本目录
 │   ├── main.py          # 主执行脚本（位于 scripts/main.py）
 │   └── requirements.txt # Python依赖文件（位于 scripts/requirements.txt）
@@ -108,6 +109,15 @@ license: 专有。LICENSE.txt 包含完整条款
 ```
 
 > 注意：以上目录结构中使用斜杠(/)是为了文档显示清晰，实际文件路径会根据操作系统自动使用正确的分隔符（Windows使用反斜杠\\，Unix/Linux/macOS使用斜杠/）
+
+### 配置文件目录（config/）
+
+所有技能脚本使用的配置文件都应放在 `config/` 目录下，例如：
+- API 配置文件（如 config/api_config.json）
+- 模板文件（如 config/templates/）
+- 数据文件（如 config/data/）
+
+脚本中加载配置文件时应使用绝对路径或相对于当前工作目录的路径。
 
 ### 脚本索引
 
@@ -130,11 +140,36 @@ license: 专有。LICENSE.txt 包含完整条款
 ```
 技能名/
 ├── SKILL.md          # 技能主配置文件
+├── config/           # 配置文件目录（保存技能脚本使用的所有配置文件）
 ├── scripts/          # 脚本目录
 │   ├── main.py      # 主脚本
 │   └── requirements.txt  # Python依赖
 └── LICENSE.txt      # 许可证文件
 ```
+
+### 配置文件目录规则（重要）
+**config/ 目录用途**：专门用于存放技能脚本运行时所需的所有配置文件。
+
+**配置文件类型**：
+- API 配置文件（如 api_config.json, credentials.ini）
+- 模板文件（如 templates/*.j2）
+- 数据文件（如 data/*.json, data/*.csv）
+- 环境变量文件（如 .env 示例文件）
+- 其他运行时配置文件
+
+**配置文件加载方式**：
+```python
+import os
+
+# 方式一：相对于当前工作目录加载配置文件（推荐）
+config_path = os.path.join(os.getcwd(), "config", "settings.json")
+
+# 方式二：相对于技能目录加载（不推荐，可能导致路径问题）
+# skill_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# config_path = os.path.join(skill_dir, "config", "settings.json")
+```
+
+**重要**：配置文件应放在 config/ 目录下，而不是硬编码在脚本中或放在 scripts/ 目录下。
 
 ### 输出文件规则（重要）
 **规则**: 所有脚本生成的输出文件（如下载的文件、生成的报告、输出的数据等）必须保存到**当前工作目录**，而不是技能安装目录。
@@ -192,6 +227,7 @@ output_path = os.path.join(data_dir, "result.txt")
 - [ ] SKILL.md文件编码为UTF-8
 
 **目录结构验证**:
+- [ ] config目录已创建（用于存放配置文件）
 - [ ] scripts目录已创建
 - [ ] requirements.txt文件存在于scripts目录
 - [ ] main.py示例脚本已创建（包含输出到当前工作目录的示例）
@@ -272,6 +308,29 @@ if __name__ == '__main__':
 '''
         return template
     
+    def generate_config_example(self) -> str:
+        """生成示例配置文件内容"""
+        content = """{
+    "skill_name": "your-skill-name",
+    "version": "1.0.0",
+    "settings": {
+        "output_dir": "output",
+        "log_level": "info",
+        "max_retries": 3
+    },
+    "api": {
+        "enabled": false,
+        "api_key": "",
+        "base_url": ""
+    },
+    "data": {
+        "cache_enabled": true,
+        "cache_ttl": 3600
+    }
+}
+"""
+        return content
+    
     def create_skill(self, skill_name: str, description: str, 
                      dependencies: Optional[List[str]] = None,
                      dry_run: bool = False) -> bool:
@@ -297,11 +356,13 @@ if __name__ == '__main__':
         # 创建目录结构
         skill_path = os.path.join(self.skills_dir, skill_name)
         scripts_path = os.path.join(skill_path, "scripts")
+        config_path = os.path.join(skill_path, "config")
         
         if dry_run:
             print(f"\n[模拟运行] 将创建以下结构:")
             print(f"  {skill_name}{self.path_sep}")
             print(f"  ├── SKILL.md")
+            print(f"  ├── config{self.path_sep}             # 配置文件目录")
             print(f"  ├── scripts{self.path_sep}")
             print(f"  │   ├── main.py           # 示例脚本（包含输出到当前工作目录的规则和跨平台路径处理）")
             print(f"  │   └── requirements.txt")
@@ -318,6 +379,17 @@ if __name__ == '__main__':
             # 创建scripts目录
             os.makedirs(scripts_path, exist_ok=False)
             print(f"创建目录: {scripts_path}")
+            
+            # 创建config目录
+            os.makedirs(config_path, exist_ok=False)
+            print(f"创建目录: {config_path}")
+            
+            # 创建示例配置文件
+            config_example = self.generate_config_example()
+            config_example_path = os.path.join(config_path, "config.example.json")
+            with open(config_example_path, 'w', encoding='utf-8') as f:
+                f.write(config_example)
+            print(f"创建文件: config/config.example.json")
             
             # 创建SKILL.md
             skill_md_content = self.generate_skill_md(skill_name, description)
@@ -344,9 +416,10 @@ if __name__ == '__main__':
             print(f"位置: {skill_path}")
             print(f"\n后续步骤:")
             print(f"  1. 编辑 {self.format_path_for_display(skill_name, 'SKILL.md')} 完善技能描述")
-            print(f"  2. 编辑 {self.format_path_for_display('scripts', 'main.py')} 添加你的功能代码")
-            print(f"  3. 根据需要修改 {self.format_path_for_display('scripts', 'requirements.txt')} 添加依赖")
-            print(f"  4. 安装依赖: pip install -r {self.format_path_for_display(skill_name, 'scripts', 'requirements.txt')}")
+            print(f"  2. 编辑 {self.format_path_for_display('config', 'config.example.json')} 添加你的配置项")
+            print(f"  3. 编辑 {self.format_path_for_display('scripts', 'main.py')} 添加你的功能代码")
+            print(f"  4. 根据需要修改 {self.format_path_for_display('scripts', 'requirements.txt')} 添加依赖")
+            print(f"  5. 安装依赖: pip install -r {self.format_path_for_display(skill_name, 'scripts', 'requirements.txt')}")
             
             return True
             

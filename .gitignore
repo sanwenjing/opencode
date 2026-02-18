@@ -2,7 +2,11 @@ node_modules
 package.json
 bun.lock
 
-/skills/bilibili-downloader/config.ini
-skills/bilibili-downloader/ffmpeg
+/skills/*/config.ini
+/skills/*/config/config.json
+/skills/*/config/credentials.json
+/skills/*/config/*.secret.json
+/skills/*/config/.env
+/skills/bilibili-downloader/ffmpeg
 **/__pycache__/
 **/nul

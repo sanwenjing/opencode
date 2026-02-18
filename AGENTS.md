@@ -59,6 +59,25 @@
   output_path = "data/output.txt"  # Windows上会失败
   ```
 
+## 配置文件管理规则（重要）
+- **配置文件存放位置**：所有技能的配置文件必须存放在技能目录下的 `config/` 文件夹中
+- **配置文件读写规则**：
+  - 读取配置文件时，优先从技能目录的 `config/` 文件夹中读取
+  - 修改或生成配置文件时，默认保存到技能目录的 `config/` 文件夹中
+  - 配置文件命名规范：`config.json` 或 `*.config.json`
+- **配置文件加载方式**：
+  ```python
+  import os
+  
+  # 正确：从技能目录的config文件夹读取配置文件
+  skill_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+  config_path = os.path.join(skill_dir, "config", "config.json")
+  
+  # 错误：不要从当前工作目录读取配置文件
+  # config_path = os.path.join(os.getcwd(), "config.json")
+  ```
+- **示例配置文件**：技能目录下的 `config/config.example.json` 作为配置文件的模板示例
+
 ## 脚本执行规则（重要）
 - 使用skill的脚本时，禁止使用 `cd` 命令切换到脚本目录执行
 - 必须使用脚本的绝对路径直接执行

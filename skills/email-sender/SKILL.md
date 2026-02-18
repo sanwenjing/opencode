@@ -1,7 +1,7 @@
 ---
 name: email-sender
 description: "专业的邮件发送工具，支持自动生成主题、配置文件管理账号信息、文件附件发送、文件夹打包发送、命令行调用"
-version: "1.1.0"
+version: "1.2.0"
 license: 专有。LICENSE.txt 包含完整条款
 ---
 
@@ -47,11 +47,21 @@ license: 专有。LICENSE.txt 包含完整条款
 ```
 email-sender/
 ├── SKILL.md              # 技能主配置文件
+├── config/               # 配置文件目录
+│   └── config.example.json  # 配置文件示例
 ├── scripts/              # 脚本目录
 │   ├── main.py          # 主执行脚本
 │   └── requirements.txt # Python依赖文件
 └── LICENSE.txt          # 许可证文件
 ```
+
+### 配置文件目录（config/）
+
+配置文件目录用于存放技能脚本运行时所需的配置文件：
+
+- `config/config.example.json` - 配置文件示例，包含所有可配置项
+
+脚本中会从当前工作目录加载配置文件（`email_sender_config.json`），用户可以参考 config.example.json 创建自己的配置文件。
 
 ### 脚本索引
 
@@ -183,6 +193,7 @@ python scripts/main.py \
 - [x] SKILL.md文件编码为UTF-8
 
 **目录结构验证**:
+- [x] config目录已创建（用于存放配置文件）
 - [x] scripts目录已创建
 - [x] requirements.txt文件存在于scripts目录
 - [x] main.py主脚本已创建

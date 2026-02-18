@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-18
+
+### Added
+- 新增config目录创建功能，创建新技能时自动创建config文件夹
+- 新增config.example.json示例配置文件，用于展示配置项格式
+- SKILL.md中添加配置文件目录说明和使用规范
+- 创建流程中添加config目录验证清单
+
+### Changed
+- 更新目录结构说明，包含config目录
+- 更新验证清单，添加config目录验证项
+- 更新输出标准说明
+
 ## [1.1.0] - 2026-02-08
 
 ### Added
