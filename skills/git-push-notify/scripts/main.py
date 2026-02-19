@@ -23,7 +23,7 @@ def send_email(subject: str, body: str) -> bool:
         return False
     
     result = subprocess.run(
-        [sys.executable, email_sender_path, "-t", "", "-s", subject, "-b", body, "-y"],
+        [sys.executable, email_sender_path, "-s", subject, "-b", body, "-y"],
         capture_output=True,
         text=True
     )
