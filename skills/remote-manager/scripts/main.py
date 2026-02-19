@@ -54,8 +54,26 @@ class Host:
         )
 
 
+def _find_hosts_file() -> str:
+    """查找hosts.yaml配置文件，优先顺序：当前工作目录 > 技能安装目录"""
+    candidates = [
+        os.path.join(os.getcwd(), "hosts.yaml"),
+    ]
+    
+    skill_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    candidates.append(os.path.join(skill_dir, "config", "hosts.yaml"))
+    
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    
+    return candidates[0]
+
+
 class HostManager:
-    def __init__(self, hosts_file: str = "hosts.yaml"):
+    def __init__(self, hosts_file: str = None):
+        if hosts_file is None:
+            hosts_file = _find_hosts_file()
         self.hosts_file = hosts_file
         self.hosts: Dict[str, Host] = {}
         self.load_hosts()
