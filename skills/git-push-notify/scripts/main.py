@@ -36,6 +36,46 @@ def send_email(subject: str, body: str) -> bool:
         return False
 
 
+def get_commit_details(repo_path: str) -> str:
+    """获取本次提交的详细信息"""
+    details = []
+    
+    result = subprocess.run(
+        ['git', 'log', '-3', '--oneline', '--stat'],
+        capture_output=True,
+        text=True,
+        cwd=repo_path
+    )
+    
+    if result.returncode == 0:
+        details.append("=== 最近提交 ===")
+        details.append(result.stdout)
+    
+    result = subprocess.run(
+        ['git', 'diff', '@{u}..HEAD', '--stat'],
+        capture_output=True,
+        text=True,
+        cwd=repo_path
+    )
+    
+    if result.returncode == 0 and result.stdout.strip():
+        details.append("\n=== 本次推送的变更 ===")
+        details.append(result.stdout)
+    
+    result = subprocess.run(
+        ['git', 'diff', '@{u}..HEAD'],
+        capture_output=True,
+        text=True,
+        cwd=repo_path
+    )
+    
+    if result.returncode == 0 and result.stdout.strip():
+        details.append("\n=== 详细 diff ===")
+        details.append(result.stdout[:10000])
+    
+    return "\n".join(details)
+
+
 def check_needs_push(repo_path: str) -> bool:
     """检查是否有需要 push 的内容"""
     result = subprocess.run(
@@ -140,15 +180,17 @@ def main():
             print(f"当前目录保持不变: {os.getcwd()}")
             
             if not args.no_email:
+                commit_details = get_commit_details(repo_path)
                 repo_name = os.path.basename(repo_path)
                 subject = f"Git Push 成功 - {repo_name}"
-                body = f"""
-Git Push 操作已成功完成！
+                body = f"""Git Push 操作已成功完成！
 
 仓库: {repo_path}
 尝试次数: {attempt}
 总耗时: {int(elapsed)}秒
 完成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+{commit_details}
 """
                 print("\n正在发送邮件通知...")
                 send_email(subject, body)
