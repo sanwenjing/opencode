@@ -213,14 +213,18 @@ def main():
         create_default_config()
         return
     
+    config = load_config()
+    
     if not args.to:
-        parser.error('--to is required unless using --init-config')
+        default_to = config.get('default_to', '')
+        if not default_to:
+            parser.error('--to is required unless using --init-config or配置 default_to')
+        args.to = default_to
     
     if args.config:
         global config_path
         config_path = args.config
-    
-    config = load_config()
+        config = load_config()
     
     if not config.get('username') or config.get('username') == 'your_email@example.com':
         print("错误: 请先配置邮件账号信息")
