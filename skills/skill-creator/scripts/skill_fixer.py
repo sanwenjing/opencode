@@ -196,7 +196,7 @@ class SkillFixer:
             yaml_frontmatter = f"""---
 name: {skill_name}
 description: "技能描述 - 需要手动完善具体功能和使用场景"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 """
@@ -231,7 +231,7 @@ license: 专有。LICENSE.txt 包含完整条款
             
             if field == 'license':
                 if 'license:' not in yaml_section:
-                    new_yaml = yaml_section + f"\nlicense: 专有。LICENSE.txt 包含完整条款"
+                    new_yaml = yaml_section + f"\nlicense: MIT License (见仓库根目录 LICENSE 文件)"
                     content = new_yaml + content[yaml_end:]
             elif field == 'name':
                 if 'name:' not in yaml_section:

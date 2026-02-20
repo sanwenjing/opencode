@@ -123,7 +123,7 @@ def add_yaml_frontmatter_safely(skill_dir: str) -> bool:
         yaml_block = f"""---
 name: {skill_name}
 description: "{title} - 专业的技能工具"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 """

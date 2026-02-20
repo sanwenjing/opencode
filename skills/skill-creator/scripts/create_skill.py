@@ -97,7 +97,7 @@ class SkillCreator:
         ]
         if depends_block:
             frontmatter_parts.append(depends_block.rstrip())
-        frontmatter_parts.append("license: 专有。LICENSE.txt 包含完整条款")
+        frontmatter_parts.append("license: MIT License (见仓库根目录 LICENSE 文件)")
         
         frontmatter = "---\n" + "\n".join(frontmatter_parts) + "\n---"
         
@@ -121,10 +121,9 @@ class SkillCreator:
 {skill_name}/
 ├── SKILL.md              # 技能主配置文件
 ├── config/               # 配置文件目录（保存技能脚本使用的所有配置文件）
-├── scripts/              # 脚本目录
-│   ├── main.py          # 主执行脚本（位于 scripts/main.py）
-│   └── requirements.txt # Python依赖文件（位于 scripts/main.py）
-└── LICENSE.txt          # 许可证文件
+└── scripts/              # 脚本目录
+    ├── main.py          # 主执行脚本（位于 scripts/main.py）
+    └── requirements.txt # Python依赖文件（位于 scripts/main.py）
 ```
 
 > 注意：以上目录结构中使用斜杠(/)是为了文档显示清晰，实际文件路径会根据操作系统自动使用正确的分隔符（Windows使用反斜杠\\，Unix/Linux/macOS使用斜杠/）
@@ -160,10 +159,9 @@ class SkillCreator:
 技能名/
 ├── SKILL.md          # 技能主配置文件
 ├── config/           # 配置文件目录（保存技能脚本使用的所有配置文件）
-├── scripts/          # 脚本目录
-│   ├── main.py      # 主脚本
-│   └── requirements.txt  # Python依赖
-└── LICENSE.txt      # 许可证文件
+└── scripts/          # 脚本目录
+    ├── main.py      # 主脚本
+    └── requirements.txt  # Python依赖
 ```
 
 ### 配置文件目录规则（重要）
