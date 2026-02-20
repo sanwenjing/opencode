@@ -81,7 +81,17 @@
 ## 脚本执行规则（重要）
 - 使用skill的脚本时，禁止使用 `cd` 命令切换到脚本目录执行
 - 必须使用脚本的绝对路径直接执行
-- 正确方式：`python "C:\Users\xxx\skills\skill-name\scripts\script.py"`
+- **Python脚本执行规则**：
+  - 所有Python脚本必须使用 `python3` 命令执行
+  - 如果系统没有 `python3` 命令但有 `python` 命令，需要创建软链接：
+    ```bash
+    # 检查python3是否存在
+    which python3 || which python
+    # 如果没有python3但有python，创建软链接
+    sudo ln -s "$(which python)" /usr/bin/python3
+    ```
+  - 在调用任何Python脚本前，先检查python3是否可用，不可用时创建软链接
+- 正确方式：`python3 "C:\Users\xxx\skills\skill-name\scripts\script.py"`
 - 错误方式：`cd "C:\Users\xxx\skills\skill-name" && python scripts/script.py`
 - 原因：避免路径污染和执行位置不确定性问题
 
@@ -107,13 +117,13 @@
 ### 使用方式
 ```bash
 # 创建新技能
-python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\create_skill.py" <技能名> <描述>
+python3 "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\create_skill.py" <技能名> <描述>
 
 # 更新技能版本（自动更新版本号和CHANGELOG）
-python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --bump <patch|minor|major> --message "变更描述"
+python3 "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --bump <patch|minor|major> --message "变更描述"
 
 # 查看技能版本信息
-python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --info
+python3 "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --info
 ```
 
 ### 技能修改规范（重要）
@@ -134,7 +144,7 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
 
 ### Git Push 规则
 - **禁止手动执行 git push**：所有 git push 操作必须通过 git-push-notify 技能执行
-- **必须使用技能**：`python "C:\Users\Administrator\.config\opencode\skills\git-push-notify\scripts\main.py" --repo <仓库路径>`
+- **必须使用技能**：`python3 "C:\Users\Administrator\.config\opencode\skills\git-push-notify\scripts\main.py" --repo <仓库路径>`
 - **失败重试机制**：
   - 遇到网络失败时自动重试
   - 最大重试次数：10 次
