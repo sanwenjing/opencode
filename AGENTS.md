@@ -146,7 +146,7 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
 - **不自动 push**：每次提交后不自动执行 git push
 - **触发条件**（满足任一条件才执行 git push）：
   1. 距离上次 push 超过 24 小时
-  2. 本地领先远程 10 个或更多提交
+  2. 本地领先远程 5 个或更多提交
 - **检查方式**：使用 `git log --oneline origin/main..HEAD | wc -l` 检查领先提交数
 
 ### Git 提交安全检查（重要）
