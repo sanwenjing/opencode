@@ -116,6 +116,20 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
 python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --info
 ```
 
+### 技能修改规范（重要）
+- **禁止直接修改技能文件**：所有技能修改必须通过 skill-creator 流程
+- **修改前**：先读取 SKILL.md 了解当前版本和依赖
+- **修改时**：
+  1. 修改代码
+  2. 在 SKILL.md 的 YAML front matter 中添加 `depends` 声明依赖的技能
+  3. 使用 version_manager.py 更新版本号和 CHANGELOG
+- **依赖声明格式**：
+  ```yaml
+  depends:
+    - skill: remote-manager
+    - skill: termux-api-controller
+  ```
+
 ## Git 操作规则（重要）
 
 ### Git Push 规则
