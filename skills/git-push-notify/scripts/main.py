@@ -36,6 +36,31 @@ def send_email(subject: str, body: str) -> bool:
         return False
 
 
+def send_termux_notification(title: str, content: str, host: str = "termux") -> bool:
+    """调用 termux-api-controller 技能发送手机通知"""
+    termux_api_path = os.path.join(
+        os.path.expanduser("~"), ".config", "opencode", "skills", "termux-api-controller", "scripts", "main.py"
+    )
+    
+    if not os.path.exists(termux_api_path):
+        print(f"警告: termux-api-controller 技能不存在，跳过手机通知")
+        return False
+    
+    notification_args = f"-t '{title}' -c '{content}'"
+    result = subprocess.run(
+        [sys.executable, termux_api_path, "notification", notification_args, "--host", host],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode == 0:
+        print("手机通知发送成功")
+        return True
+    else:
+        print(f"手机通知发送失败: {result.stderr}")
+        return False
+
+
 def get_commit_details(repo_path: str) -> str:
     """获取本次提交的详细信息"""
     details = []
@@ -194,6 +219,8 @@ def main():
 """
                 print("\n正在发送邮件通知...")
                 send_email(subject, body)
+                print("\n正在发送手机通知...")
+                send_termux_notification(subject, body[:500])
             
             return
         
@@ -223,6 +250,8 @@ Git Push 操作失败！
 """
                 print("\n正在发送邮件通知...")
                 send_email(subject, body)
+                print("\n正在发送手机通知...")
+                send_termux_notification(subject, body[:500])
             
             sys.exit(1)
         
