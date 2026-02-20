@@ -8,6 +8,7 @@ bun.lock
 /skills/*/config/*.secret.json
 /skills/*/config/.env
 /skills/*/config/hosts.yaml
+/skills/*/config/mqtt_config.json
 /skills/bilibili-downloader/ffmpeg
 **/__pycache__/
-**/nul/skills/*/config/mqtt_config.json
+**/nul

@@ -76,4 +76,4 @@ python ~/.config/opencode/skills/skill-creator/scripts/version_manager.py --skil
 
 ## 许可证
 
-专有软件，保留所有权利。
+本项目采用 [MIT License](./LICENSE) 开源许可证，允许自由使用、修改和分发，包括商业用途。
