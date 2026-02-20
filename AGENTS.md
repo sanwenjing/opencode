@@ -139,7 +139,15 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
   - 遇到网络失败时自动重试
   - 最大重试次数：10 次
   - 超过 10 次重试直接退出并报错
-- **邮件通知**：成功或失败时自动发送邮件通知（含提交详情）
+- **失败处理**：失败时仅记录日志，不发送通知
+- **邮件通知**：成功时自动发送邮件和手机通知
+
+### Git Push 条件（重要）
+- **不自动 push**：每次提交后不自动执行 git push
+- **触发条件**（满足任一条件才执行 git push）：
+  1. 距离上次 push 超过 24 小时
+  2. 本地领先远程 10 个或更多提交
+- **检查方式**：使用 `git log --oneline origin/main..HEAD | wc -l` 检查领先提交数
 
 ### Git 提交安全检查（重要）
 - **提交前检查**：每次 git commit 前必须检查技能 config 目录下的配置文件是否包含敏感信息

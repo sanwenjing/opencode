@@ -235,23 +235,7 @@ def main():
             print(f"\n已达到最大等待时间 {max_timeout}秒 ({max_timeout//60}分钟)")
             print(f"最终失败，共尝试 {attempt} 次")
             print(f"当前目录保持不变: {os.getcwd()}")
-            
-            if not args.no_email:
-                repo_name = os.path.basename(repo_path)
-                subject = f"Git Push 失败 - {repo_name}"
-                body = f"""
-Git Push 操作失败！
-
-仓库: {repo_path}
-尝试次数: {attempt}
-总耗时: {int(elapsed)}秒
-失败时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-错误信息: {last_error[:500]}
-"""
-                print("\n正在发送邮件通知...")
-                send_email(subject, body)
-                print("\n正在发送手机通知...")
-                send_termux_notification(subject, body[:500])
+            print(f"失败已记录，不发送通知")
             
             sys.exit(1)
         

@@ -1,7 +1,7 @@
 ---
 name: git-push-notify
-version: 0.5.0
-description: 执行git push并发送邮件和手机通知，支持网络不稳定时自动重试
+version: 0.6.0
+description: 执行git push并发送邮件和手机通知，支持网络不稳定时自动重试，失败时仅记录日志
 depends:
 - skill: email-sender
   min_version: 1.0.0
