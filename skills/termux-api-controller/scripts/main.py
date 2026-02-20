@@ -8,6 +8,7 @@ if sys.platform == 'win32':
 import os
 import argparse
 import subprocess
+import shlex
 
 REMOTE_MANAGER_PATH = os.path.join(
     os.path.expanduser("~"), ".config", "opencode", "skills", "remote-manager", "scripts", "main.py"
@@ -70,6 +71,15 @@ TERMUX_APIS = {
 }
 
 
+def escape_shell_arg(arg):
+    """转义 shell 参数，防止特殊字符破坏命令"""
+    if not arg:
+        return "''"
+    if "'" not in arg:
+        return f"'{arg}'"
+    return "'" + arg.replace("'", "'\"'\"'") + "'"
+
+
 def exec_on_remote(command, host="termux"):
     if not os.path.exists(REMOTE_MANAGER_PATH):
         print(f"错误: remote-manager 技能不存在: {REMOTE_MANAGER_PATH}")
@@ -119,16 +129,40 @@ def exec_api(api_name, args=None, host="termux"):
         return False
 
 
+def send_notification(title, content, host="termux"):
+    """发送通知，自动处理特殊字符"""
+    escaped_title = escape_shell_arg(title)
+    escaped_content = escape_shell_arg(content[:500])
+    cmd = f"termux-notification -t {escaped_title} -c {escaped_content}"
+    
+    print(f"执行: termux-notification ...")
+    result = exec_on_remote(cmd, host)
+    
+    if result and result.returncode == 0:
+        print("通知发送成功")
+        return True
+    else:
+        if result:
+            print(f"通知发送失败: {result.stderr}")
+        return False
+
+
 def main():
     parser = argparse.ArgumentParser(description="Termux API 控制器")
-    parser.add_argument("command", nargs="?", help="命令: list, <api-name>")
+    parser.add_argument("command", nargs="?", help="命令: list, notify, <api-name>")
     parser.add_argument("args", nargs="?", help="API 参数")
     parser.add_argument("--host", "-n", default="termux", help="远程主机名 (默认: termux)")
+    parser.add_argument("--title", "-t", help="通知标题 (notify 命令)")
+    parser.add_argument("--content", "-c", help="通知内容 (notify 命令)")
     
     args = parser.parse_args()
     
     if args.command == "list" or args.command is None:
         list_apis()
+    elif args.command == "notify":
+        title = args.title or "通知"
+        content = args.content or ""
+        send_notification(title, content, args.host)
     else:
         exec_api(args.command, args.args, args.host)
 

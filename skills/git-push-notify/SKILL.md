@@ -1,12 +1,12 @@
 ---
 name: git-push-notify
-version: 0.6.0
+version: 0.7.0
 description: 执行git push并发送邮件和手机通知，支持网络不稳定时自动重试，失败时仅记录日志
 depends:
 - skill: email-sender
   min_version: 1.0.0
 - skill: termux-api-controller
-  min_version: 1.0.0
+  min_version: 1.1.0
 license: 专有。LICENSE.txt 包含完整条款
 ---
 

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-20
+
+### Fixed
+- 修复手机通知发送失败问题，使用 termux-api-controller 的 notify 子命令
+- 正确处理通知内容中的特殊字符（换行、引号等）
+
+### Changed
+- 更新依赖 termux-api-controller 最低版本为 1.1.0
+
 ## [0.6.0] - 2026-02-20
 
 ### Changed

@@ -1,7 +1,7 @@
 ---
 name: termux-api-controller
 description: "在远程Termux设备上执行API命令的工具，依赖remote-manager技能"
-version: "1.0.0"
+version: "1.1.0"
 depends:
   - skill: remote-manager
 license: 专有。LICENSE.txt 包含完整条款

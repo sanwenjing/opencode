@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-20
+
+### Added
+- 新增 `notify` 子命令，专门用于发送通知
+- 新增 `--title` 和 `--content` 参数，支持包含特殊字符的内容
+- 新增 `escape_shell_arg` 函数，正确处理 shell 参数转义
+
+### Fixed
+- 修复通知内容包含特殊字符（换行、引号）时发送失败的问题
+
 ## [1.0.0] - 2026-02-19
 
 ### Added

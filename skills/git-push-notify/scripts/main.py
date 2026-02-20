@@ -46,9 +46,8 @@ def send_termux_notification(title: str, content: str, host: str = "termux") -> 
         print(f"警告: termux-api-controller 技能不存在，跳过手机通知")
         return False
     
-    notification_args = f"-t '{title}' -c '{content}'"
     result = subprocess.run(
-        [sys.executable, termux_api_path, "notification", notification_args, "--host", host],
+        [sys.executable, termux_api_path, "notify", "-t", title, "-c", content[:500], "--host", host],
         capture_output=True,
         text=True
     )
