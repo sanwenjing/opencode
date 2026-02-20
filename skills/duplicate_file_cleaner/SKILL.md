@@ -2,7 +2,7 @@
 name: duplicate_file_cleaner
 description: 具有智能文件保护策略的综合重复文件清理工具。此技能专门识别和安全删除重复文件，同时为重要文件提供强大保护。当 Claude 需要清理重复文件时用于：(1)
   智能识别重复文件，(2) 保护重要文件，(3) 安全预览清理操作，(4) 执行批量删除，或 (5) 生成清理报告
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 

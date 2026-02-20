@@ -1,7 +1,7 @@
 ---
 name: frontend-design
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: frontend-design
 description: "---
 name: frontend-design
 description: 创建独特、生产级前端界面，具有高设计质量。当用户要求构建网页组件、页面、构件、海报或应用程序（例如网站、着陆页、仪表板、React 组件、HTML/CSS 布局，或样式化/美化任何 Web UI）时使用此技能。生成创意、精美的代码和 UI 设计，避免通用 AI 美学。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 此技能指导创建独特、生产级前端界面，避免通用"AI 泥浆"美学。实现真正可工作的代码，对美学细节和创意选择给予卓越关注。
@@ -49,13 +49,13 @@ license: 完整条款见 LICENSE.txt
 **重要**：将实现复杂度与美学愿景匹配。极繁主义设计需要具有广泛动画和效果的精细代码。极简主义或精致设计需要克制、精确和对间距、字体排印和微妙细节的仔细关注。优雅来自良好执行愿景。
 
 记住：Claude 能够进行非凡的创意工作。不要退缩，展示在跳出框框思考并完全致力于独特愿景时真正能创造什么。 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: frontend-design
 description: 创建独特、生产级前端界面，具有高设计质量。当用户要求构建网页组件、页面、构件、海报或应用程序（例如网站、着陆页、仪表板、React 组件、HTML/CSS 布局，或样式化/美化任何 Web UI）时使用此技能。生成创意、精美的代码和 UI 设计，避免通用 AI 美学。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 此技能指导创建独特、生产级前端界面，避免通用"AI 泥浆"美学。实现真正可工作的代码，对美学细节和创意选择给予卓越关注。

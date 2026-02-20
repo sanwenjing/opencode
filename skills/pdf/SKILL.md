@@ -1,7 +1,7 @@
 ---
 name: pdf
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: pdf
 description: "---
 name: pdf
 description: 全面的 PDF 操作工具包，用于提取文本和表格、创建新 PDF、合并/拆分文档和处理表单。当 Claude 需要填写 PDF 表单或以编程方式处理、生成或分析 PDF 文档时使用。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  PDF 处理指南
@@ -232,13 +232,13 @@ images = convert_from_path('scanned.pdf')
 text = ""
 for i, image in enumerate(images):
     text += f"第 {i+1} 页： - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: pdf
 description: 全面的 PDF 操作工具包，用于提取文本和表格、创建新 PDF、合并/拆分文档和处理表单。当 Claude 需要填写 PDF 表单或以编程方式处理、生成或分析 PDF 文档时使用。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # PDF 处理指南

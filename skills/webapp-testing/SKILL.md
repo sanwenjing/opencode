@@ -1,7 +1,7 @@
 ---
 name: webapp-testing
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: webapp-testing
 description: "---
 name: webapp-testing
 description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  Web Application Testing
@@ -103,13 +103,13 @@ with sync_playwright() as p:
   - `element_discovery.py` - Discovering buttons, links, and inputs on a page
   - `static_html_automation.py` - Using file:// URLs for local HTML
   - `console_logging.py` - Capturing console logs during automation - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: webapp-testing
 description: Toolkit for interacting with and testing local web applications using Playwright. Supports verifying frontend functionality, debugging UI behavior, capturing browser screenshots, and viewing browser logs.
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # Web Application Testing

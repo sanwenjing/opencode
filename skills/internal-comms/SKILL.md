@@ -1,7 +1,7 @@
 ---
 name: internal-comms
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: internal-comms
 description: "---
 name: internal-comms
 description: 一套资源帮助我编写各种内部沟通，使用我公司喜欢的格式。当被要求编写某种内部沟通（状态报告、领导层更新、3P 更新、公司通讯、FAQ、事件报告、项目更新等）时，Claude 应该使用此技能。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  何时使用此技能
@@ -39,13 +39,13 @@ license: 完整条款见 LICENSE.txt
 
  关键词
 3P 更新、公司通讯、公司沟通、每周更新、FAQ、常见问题、更新、内部沟通 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: internal-comms
 description: 一套资源帮助我编写各种内部沟通，使用我公司喜欢的格式。当被要求编写某种内部沟通（状态报告、领导层更新、3P 更新、公司通讯、FAQ、事件报告、项目更新等）时，Claude 应该使用此技能。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ## 何时使用此技能

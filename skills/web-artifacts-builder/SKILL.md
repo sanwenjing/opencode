@@ -1,7 +1,7 @@
 ---
 name: web-artifacts-builder
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: web-artifacts-builder
 description: "---
 name: web-artifacts-builder
 description: Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  Web Artifacts Builder
@@ -81,13 +81,13 @@ To test/visualize the artifact, use available tools (including other Skills or b
  Reference
 
 - **shadcn/ui components**: https://ui.shadcn.com/docs/components - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: web-artifacts-builder
 description: Suite of tools for creating elaborate, multi-component claude.ai HTML artifacts using modern frontend web technologies (React, Tailwind CSS, shadcn/ui). Use for complex artifacts requiring state management, routing, or shadcn/ui components - not for simple single-file HTML/JSX artifacts.
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # Web Artifacts Builder

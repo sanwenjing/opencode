@@ -1,7 +1,7 @@
 ---
 name: algorithmic-art
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: algorithmic-art
 description: "---
 name: algorithmic-art
 description: 使用 p5.js 创建算法艺术，具有种子随机性和交互式参数探索。当用户请求使用代码创建艺术、生成艺术、算法艺术、流场或粒子系统时使用此技能。创建原创的算法艺术而非复制现有艺术家的作品以避免版权侵犯。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 算法哲学是通过代码表达的计算美学运动。输出 .md 文件（哲学）、.html 文件（交互查看器）和 .js 文件（生成算法）。
@@ -42,13 +42,13 @@ license: 完整条款见 LICENSE.txt
 
  类别
 生成艺术、创意编程、算法设计 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: algorithmic-art
 description: 使用 p5.js 创建算法艺术，具有种子随机性和交互式参数探索。当用户请求使用代码创建艺术、生成艺术、算法艺术、流场或粒子系统时使用此技能。创建原创的算法艺术而非复制现有艺术家的作品以避免版权侵犯。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 算法哲学是通过代码表达的计算美学运动。输出 .md 文件（哲学）、.html 文件（交互查看器）和 .js 文件（生成算法）。

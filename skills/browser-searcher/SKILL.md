@@ -1,7 +1,7 @@
 ---
 name: browser-searcher
 description: 使用Chrome浏览器自动化百度搜索，支持翻页查找M3U8视频资源，最多搜索100页，自动测试每个链接提取可用地址
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 

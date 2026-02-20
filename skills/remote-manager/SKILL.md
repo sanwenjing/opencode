@@ -2,7 +2,7 @@
 name: remote-manager
 description: 批量管理远程SSH主机的工具，支持维护主机信息表并批量执行命令获取结果
 version: 1.0.2
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ## 我做什么

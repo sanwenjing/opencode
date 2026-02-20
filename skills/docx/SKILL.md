@@ -1,7 +1,7 @@
 ---
 name: docx
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: docx
 description: "---
 name: docx
 description: "全面的文档创建、编辑和分析，支持修订跟踪、评论、格式保留和文本提取。当 Claude 需要处理专业文档（.docx 文件）时用于：(1) 创建新文档，(2) 修改或编辑内容，(3) 处理修订跟踪，(4) 添加评论，或任何其他文档任务"
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  DOCX 创建、编辑和分析
@@ -204,13 +204,13 @@ pdftoppm -jpeg -r 150 -f 2 -l 5 document.pdf page   仅转换第 2-5 页
 - **LibreOffice**：`sudo apt-get install libreoffice`（用于 PDF 转换）
 - **Poppler**：`sudo apt-get install poppler-utils`（用于 pdftoppm 将 PDF 转换为图像）
 - **defusedxml**：`pip install defusedxml`（用于安全 XML 解析） - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: docx
 description: "全面的文档创建、编辑和分析，支持修订跟踪、评论、格式保留和文本提取。当 Claude 需要处理专业文档（.docx 文件）时用于：(1) 创建新文档，(2) 修改或编辑内容，(3) 处理修订跟踪，(4) 添加评论，或任何其他文档任务"
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # DOCX 创建、编辑和分析

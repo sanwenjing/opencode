@@ -1,7 +1,7 @@
 ---
 name: pptx
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: pptx
 description: "---
 name: pptx-pro
 description: "专业 PowerPoint 创建，具有全面的排版和布局标准。增强版本包含完整的设计指南、排版规则、色彩理论、布局原则和无障碍合规性。当 Claude 需要创建遵循专业设计标准的演示文稿时使用。"
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  PPTX 创建、编辑和分析
@@ -87,13 +87,13 @@ python -m markitdown path-to-file.pptx
 
  类别
 演示文稿设计、专业排版、视觉传达 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: pptx-pro
 description: "专业 PowerPoint 创建，具有全面的排版和布局标准。增强版本包含完整的设计指南、排版规则、色彩理论、布局原则和无障碍合规性。当 Claude 需要创建遵循专业设计标准的演示文稿时使用。"
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # PPTX 创建、编辑和分析

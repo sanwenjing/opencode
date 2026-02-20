@@ -1,7 +1,7 @@
 ---
 name: doc-coauthoring
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -382,7 +382,7 @@ description: 指导用户通过结构化工作流程进行协作编写文档。�
 - 不要匆忙通过阶段
 - 每次迭代都应该进行有意义的改进
 - 目标是真正对读者有效的文档 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---

@@ -7,7 +7,7 @@ depends:
   min_version: 1.0.0
 - skill: termux-api-controller
   min_version: 1.1.0
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ## 我做什么

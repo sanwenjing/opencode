@@ -1,7 +1,7 @@
 ---
 name: mirror-downloader
 description: 递归下载镜像站点文件的工具，支持自定义URL地址参数，可递归下载整个目录结构
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 

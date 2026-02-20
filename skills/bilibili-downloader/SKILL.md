@@ -1,7 +1,7 @@
 ---
 name: bilibili-downloader
 description: Bilibili视频下载器，使用bilibili-api库直接从B站API下载视频。全自动下载，无需浏览器，支持多种清晰度选择。适用于Windows、MacOS、Linux平台。
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 compatibility:
 - Windows
 - MacOS

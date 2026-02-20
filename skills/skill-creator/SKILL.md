@@ -3,7 +3,7 @@ name: skill-creator
 description: 严格验证并创建符合OpenCode规范的新技能，同时提供完整的技能诊断和修复功能。当 Claude 需要创建新技能时用于：(1) 严格验证技能名称和描述格式，(2)
   创建标准目录结构（包含scripts目录），(3) 生成符合规范的SKILL.md文件，(4) 验证YAML front matter格式，(5) 版本管理和变更日志记录。当需要修复技能时用于：(1)
   诊断技能系统问题，(2) 修复YAML front matter缺失，(3) 清理技能缓存，(4) 验证技能完整性，(5) 修复名称不一致等问题，(6) 更新技能版本和变更日志
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.3.0
 ---
 
@@ -336,7 +336,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 name: my-skill
 description: "技能描述"
 version: "1.0.0"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 ```
 
@@ -448,7 +448,7 @@ description: "技能描述"
 depends:
   - skill: skill-name
     min_version: "1.0.0"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 ```
 

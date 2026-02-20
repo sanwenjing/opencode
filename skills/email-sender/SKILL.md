@@ -2,7 +2,7 @@
 name: email-sender
 description: "专业的邮件发送工具，支持自动生成主题、配置文件管理账号信息、文件附件发送、文件夹打包发送、命令行调用、发送日志"
 version: "1.3.0"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ## 我做什么

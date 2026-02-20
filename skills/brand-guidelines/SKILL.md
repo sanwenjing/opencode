@@ -1,7 +1,7 @@
 ---
 name: brand-guidelines
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: brand-guidelines
 description: "---
 name: brand-guidelines
 description: 将 Anthropic 官方品牌颜色和排版应用于任何可能受益于 Anthropic 外观和感觉的工件。当品牌颜色或风格指南、视觉格式、公司设计标准适用时使用此技能。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  Anthropic 品牌样式
@@ -83,13 +83,13 @@ license: 完整条款见 LICENSE.txt
 
  类别
 品牌设计、视觉样式、企业标识 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: brand-guidelines
 description: 将 Anthropic 官方品牌颜色和排版应用于任何可能受益于 Anthropic 外观和感觉的工件。当品牌颜色或风格指南、视觉格式、公司设计标准适用时使用此技能。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # Anthropic 品牌样式

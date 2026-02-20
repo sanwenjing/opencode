@@ -1,7 +1,7 @@
 ---
 name: canvas-design
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: canvas-design
 description: "---
 name: canvas-design
 description: 使用设计理念在 .png 和 .pdf 文档中创建美丽的视觉艺术。当用户要求创建海报、艺术品、设计或其他静态作品时应使用此技能。创建原创的视觉设计，绝不复制现有艺术家的作品以避免版权侵犯。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 这些是创建设计哲学的说明 - 然后通过视觉表达的美学运动。仅输出 .md 文件、.pdf 文件和 .png 文件。
@@ -51,13 +51,13 @@ license: 完整条款见 LICENSE.txt
 
  类别
 视觉设计、平面设计、艺术创作 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: canvas-design
 description: 使用设计理念在 .png 和 .pdf 文档中创建美丽的视觉艺术。当用户要求创建海报、艺术品、设计或其他静态作品时应使用此技能。创建原创的视觉设计，绝不复制现有艺术家的作品以避免版权侵犯。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 这些是创建设计哲学的说明 - 然后通过视觉表达的美学运动。仅输出 .md 文件、.pdf 文件和 .png 文件。

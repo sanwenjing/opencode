@@ -1,7 +1,7 @@
 ---
 name: news-fetcher
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: news-fetcher
 description: "---
 name: news-fetcher
 description: 具有可自定义过滤选项的综合新闻抓取技能，从百度新闻获取新闻文章。此技能提供对当前新闻的结构化访问，包含完整文章的直接链接。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  新闻获取技能
@@ -69,13 +69,13 @@ const internationalNews = await newsFetcher.getNews({
 
  类别
 数据处理、网络抓取、新闻聚合 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: news-fetcher
 description: 具有可自定义过滤选项的综合新闻抓取技能，从百度新闻获取新闻文章。此技能提供对当前新闻的结构化访问，包含完整文章的直接链接。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # 新闻获取技能

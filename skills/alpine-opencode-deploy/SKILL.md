@@ -1,7 +1,7 @@
 ---
 name: alpine-opencode-deploy
 description: 在远程Alpine Linux服务器上自动部署和安装OpenCode AI编程助手，经过2026-02-08验证的最简部署流程
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.1.0
 ---
 

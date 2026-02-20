@@ -2,7 +2,7 @@
 name: mqtt-client
 description: "MQTT客户端工具，支持连接Broker、发布消息、订阅主题、接收消息等核心功能"
 version: "1.0.0"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ## 我做什么

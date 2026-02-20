@@ -1,7 +1,7 @@
 ---
 name: xlsx
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: xlsx
 description: "---
 name: xlsx
 description: "全面的电子表格创建、编辑和分析，支持公式、格式化、数据分析和可视化。当 Claude 需要处理电子表格（.xlsx、.xlsm、.csv、.tsv 等）时用于：(1) 创建带有公式和格式化的新电子表格，(2) 读取或分析数据，(3) 在保留公式的同时修改现有电子表格，(4) 在电子表格中进行数据分析和可视化，或 (5) 重新计算公式"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
  输出要求
@@ -94,13 +94,13 @@ license: 专有。LICENSE.txt 包含完整条款
 
  类别
 电子表格、数据分析、财务建模 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: xlsx
 description: "全面的电子表格创建、编辑和分析，支持公式、格式化、数据分析和可视化。当 Claude 需要处理电子表格（.xlsx、.xlsm、.csv、.tsv 等）时用于：(1) 创建带有公式和格式化的新电子表格，(2) 读取或分析数据，(3) 在保留公式的同时修改现有电子表格，(4) 在电子表格中进行数据分析和可视化，或 (5) 重新计算公式"
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 # 输出要求

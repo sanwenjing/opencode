@@ -1,7 +1,7 @@
 ---
 name: theme-factory
 description: 技能工具 - 专业的技能工具
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 version: 1.0.0
 ---
 
@@ -10,7 +10,7 @@ name: theme-factory
 description: "---
 name: theme-factory
 description: 用于为工件应用主题样式的工具包。这些工件可以是幻灯片、文档、报告、HTML 着陆页等。有 10 个预设主题，包含颜色/字体，您可以将其应用于任何已创建的工件，或即时生成新主题。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 
@@ -92,13 +92,13 @@ license: 完整条款见 LICENSE.txt
 
  类别
 主题设计、样式应用、视觉一致性 - 专业的技能工具，用于..."
-license: 专有。LICENSE.txt 包含完整条款
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 ---
 name: theme-factory
 description: 用于为工件应用主题样式的工具包。这些工件可以是幻灯片、文档、报告、HTML 着陆页等。有 10 个预设主题，包含颜色/字体，您可以将其应用于任何已创建的工件，或即时生成新主题。
-license: 完整条款见 LICENSE.txt
+license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
 
