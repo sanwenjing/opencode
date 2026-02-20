@@ -160,10 +160,14 @@ def send_email(to_addr: str, subject: str = None, body: str = "",
         print(f"主题: {subject}")
         if attachments:
             print(f"附件: {', '.join([os.path.basename(a) for a in attachments])}")
+        
+        save_send_log(to_addr, subject, body, True)
         return True
         
     except Exception as e:
-        print(f"邮件发送失败: {str(e)}")
+        error_msg = str(e)
+        print(f"邮件发送失败: {error_msg}")
+        save_send_log(to_addr, subject, body, False, error_msg)
         return False
 
 
@@ -194,6 +198,39 @@ def cleanup_temp_files(temp_files: list):
             print(f"已清理临时文件: {f}")
         except Exception as e:
             print(f"清理失败: {f} - {str(e)}")
+
+
+def get_log_path() -> str:
+    """获取日志文件路径"""
+    return get_output_path("email_send_log.json")
+
+
+def save_send_log(to_addr: str, subject: str, body: str, success: bool, error_msg: str = ""):
+    """保存发送日志"""
+    log_path = get_log_path()
+    log_entry = {
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "to": to_addr,
+        "subject": subject,
+        "body": body[:200] + "..." if len(body) > 200 else body,
+        "success": success,
+        "error": error_msg
+    }
+    
+    logs = []
+    if os.path.exists(log_path):
+        try:
+            with open(log_path, 'r', encoding='utf-8') as f:
+                logs = json.load(f)
+        except:
+            logs = []
+    
+    logs.append(log_entry)
+    
+    with open(log_path, 'w', encoding='utf-8') as f:
+        json.dump(logs, f, ensure_ascii=False, indent=2)
+    
+    print(f"日志已保存: {log_path}")
 
 
 def main():
