@@ -10,4 +10,4 @@ bun.lock
 /skills/*/config/hosts.yaml
 /skills/bilibili-downloader/ffmpeg
 **/__pycache__/
-**/nul
+**/nul/skills/*/config/mqtt_config.json
