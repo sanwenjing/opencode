@@ -115,3 +115,27 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
 # 查看技能版本信息
 python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\version_manager.py" --skill <技能名> --info
 ```
+
+## Git 操作规则（重要）
+
+### Git Push 规则
+- **禁止手动执行 git push**：所有 git push 操作必须通过 git-push-notify 技能执行
+- **必须使用技能**：`python "C:\Users\Administrator\.config\opencode\skills\git-push-notify\scripts\main.py" --repo <仓库路径>`
+- **失败重试机制**：
+  - 遇到网络失败时自动重试
+  - 最大重试次数：10 次
+  - 超过 10 次重试直接退出并报错
+- **邮件通知**：成功或失败时自动发送邮件通知（含提交详情）
+
+### Git 提交安全检查（重要）
+- **提交前检查**：每次 git commit 前必须检查是否有配置文件包含敏感信息
+- **密码检查**：检查以下关键字（不区分大小写）：
+  - password、passwd、pwd
+  - secret、token、api_key、apikey
+  - auth、credential
+  - 邮箱密码、SMTP密码
+- **处理流程**：
+  1. 如果配置文件包含密码或密钥，必须取消 git 追踪：`git rm --cached <文件路径>`
+  2. 将文件路径加入到 `.gitignore`
+  3. 重新添加其他文件并提交
+- **配置文件规范**：所有含密码的配置必须存放在 `config/` 目录，并已在 `.gitignore` 中排除
