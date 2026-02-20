@@ -128,12 +128,13 @@ python "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ver
 - **邮件通知**：成功或失败时自动发送邮件通知（含提交详情）
 
 ### Git 提交安全检查（重要）
-- **提交前检查**：每次 git commit 前必须检查是否有配置文件包含敏感信息
+- **提交前检查**：每次 git commit 前必须检查技能 config 目录下的配置文件是否包含敏感信息
+- **检查范围**：仅检查 `skills/*/config/` 目录下的文件
 - **密码检查**：检查以下关键字（不区分大小写）：
   - password、passwd、pwd
   - secret、token、api_key、apikey
   - auth、credential
-  - 邮箱密码、SMTP密码
+  - smtp_password、smtp_password
 - **处理流程**：
   1. 如果配置文件包含密码或密钥，必须取消 git 追踪：`git rm --cached <文件路径>`
   2. 将文件路径加入到 `.gitignore`
