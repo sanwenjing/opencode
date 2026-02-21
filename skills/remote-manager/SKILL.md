@@ -1,7 +1,7 @@
 ---
 name: remote-manager
 description: 批量管理远程SSH主机的工具，支持维护主机信息表并批量执行命令获取结果
-version: 1.0.2
+version: 1.1.0
 license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
@@ -178,6 +178,93 @@ python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\ma
 ```bash
 python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" export -f hosts_backup.csv
 ```
+
+### 文件传输功能（SFTP）
+
+#### 上传文件
+
+```bash
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" upload -n <主机名> -s <本地路径> -d <远程路径> [-r] [--no-progress]
+```
+
+**参数说明**：
+- `-n, --name`: 主机名称（必需）
+- `-s, --source`: 本地源路径（文件或目录）
+- `-d, --dest`: 远程目标路径
+- `-r, --recursive`: 递归上传目录
+- `--no-progress`: 禁用进度条
+
+**示例**：
+```bash
+# 上传文件
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" upload -n server1 -s /local/file.txt -d /remote/path/
+
+# 上传目录
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" upload -n server1 -s /local/folder -d /remote/path/ -r
+
+# 禁用进度条
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" upload -n server1 -s file.txt -d /tmp/ --no-progress
+```
+
+#### 下载文件
+
+```bash
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" download -n <主机名> -s <远程路径> -d <本地路径> [-r] [--no-progress]
+```
+
+**参数说明**：
+- `-n, --name`: 主机名称（必需）
+- `-s, --source`: 远程源路径（文件或目录）
+- `-d, --dest`: 本地目标路径
+- `-r, --recursive`: 递归下载目录
+- `--no-progress`: 禁用进度条
+
+**示例**：
+```bash
+# 下载文件
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" download -n server1 -s /remote/file.txt -d ./local/path/
+
+# 下载目录
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" download -n server1 -s /remote/folder -d ./local/path/ -r
+```
+
+#### 列出远程目录
+
+```bash
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" ls -n <主机名> -p <远程路径>
+```
+
+**参数说明**：
+- `-n, --name`: 主机名称（必需）
+- `-p, --path`: 远程目录路径（默认当前目录）
+
+**示例**：
+```bash
+# 列出根目录
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" ls -n server1 -p /
+
+# 列出用户目录
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" ls -n server1 -p /home
+```
+
+#### 创建远程目录
+
+```bash
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" mkdir -n <主机名> -p <远程路径>
+```
+
+**参数说明**：
+- `-n, --name`: 主机名称（必需）
+- `-p, --path`: 远程目录路径
+
+**示例**：
+```bash
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" mkdir -n server1 -p /remote/newdir
+```
+
+**注意**：
+- 大文件（>1MB）传输时默认显示进度条
+- 使用 `--no-progress` 可禁用进度条显示
 
 ## 数据存储
 

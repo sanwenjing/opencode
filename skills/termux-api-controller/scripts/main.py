@@ -149,7 +149,7 @@ def send_notification(title, content, host="termux"):
 
 def main():
     parser = argparse.ArgumentParser(description="Termux API 控制器")
-    parser.add_argument("command", nargs="?", help="命令: list, notify, <api-name>")
+    parser.add_argument("command", nargs="?", help="命令: list, notify, notification, <api-name>")
     parser.add_argument("args", nargs="?", help="API 参数")
     parser.add_argument("--host", "-n", default="termux", help="远程主机名 (默认: termux)")
     parser.add_argument("--title", "-t", help="通知标题 (notify 命令)")
@@ -157,12 +157,33 @@ def main():
     
     args = parser.parse_args()
     
-    if args.command == "list" or args.command is None:
-        list_apis()
-    elif args.command == "notify":
-        title = args.title or "通知"
-        content = args.content or ""
+    # 处理 notification 命令的多种调用方式
+    if args.command in ("notify", "notification"):
+        # 优先使用 --title 和 --content 参数
+        title = args.title
+        content = args.content
+        
+        # 如果没有 --title/--content，尝试解析 args 中的参数
+        if not title and args.args:
+            try:
+                parsed_args = shlex.split(args.args)
+                for i, arg in enumerate(parsed_args):
+                    if arg == "-t" and i + 1 < len(parsed_args):
+                        title = parsed_args[i + 1]
+                    elif arg == "--title" and i + 1 < len(parsed_args):
+                        title = parsed_args[i + 1]
+                    elif arg == "-c" and i + 1 < len(parsed_args):
+                        content = parsed_args[i + 1]
+                    elif arg == "--content" and i + 1 < len(parsed_args):
+                        content = parsed_args[i + 1]
+            except:
+                pass
+        
+        title = title or "通知"
+        content = content or ""
         send_notification(title, content, args.host)
+    elif args.command == "list" or args.command is None:
+        list_apis()
     else:
         exec_api(args.command, args.args, args.host)
 

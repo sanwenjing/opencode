@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-02-21
+
+### Fixed
+- 修复 `notification` 命令参数解析问题
+- 支持多种调用方式：`notify`、`notification`、`-t title -c content`
+
+### Changed
+- 优化参数解析逻辑，支持从 args 中提取 -t/-c 参数
+
 ## [1.1.0] - 2026-02-20
 
 ### Added

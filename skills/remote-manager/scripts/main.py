@@ -16,11 +16,16 @@ from pathlib import Path
 
 try:
     import paramiko
+    from paramiko import SFTPClient
 except ImportError:
     print("错误: 请先安装paramiko库")
     print("运行: pip install paramiko cryptography")
     sys.exit(1)
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = None
 
 @dataclass
 class Host:
@@ -271,6 +276,262 @@ class SSHExecutor:
             return output.strip()
         return "Unknown"
 
+    def get_sftp(self) -> Optional[SFTPClient]:
+        """获取SFTP客户端"""
+        if not self.client:
+            if not self.connect():
+                return None
+        try:
+            assert self.client is not None
+            return self.client.open_sftp()
+        except Exception as e:
+            print(f"SFTP连接失败: {str(e)}")
+            return None
+
+    def list_dir(self, remote_path: str) -> List[str]:
+        """列出远程目录"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return []
+        try:
+            return sftp.listdir(remote_path)
+        except Exception as e:
+            print(f"列出目录失败: {str(e)}")
+            return []
+        finally:
+            sftp.close()
+
+    def mkdir(self, remote_path: str) -> bool:
+        """创建远程目录"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return False
+        try:
+            sftp.mkdir(remote_path)
+            return True
+        except Exception as e:
+            print(f"创建目录失败: {str(e)}")
+            return False
+        finally:
+            sftp.close()
+
+    def upload_file(self, local_path: str, remote_path: str, show_progress: bool = True) -> bool:
+        """上传文件"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return False
+        
+        try:
+            file_size = os.path.getsize(local_path)
+            
+            def progress_callback(uploaded, total):
+                if tqdm and show_progress and file_size > 1024 * 1024:
+                    pbar.update(uploaded - pbar.n)
+            
+            if tqdm and show_progress and file_size > 1024 * 1024:
+                pbar = tqdm(total=file_size, unit='B', unit_scale=True, desc=os.path.basename(local_path))
+            
+            with open(local_path, 'rb') as local_file:
+                sftp.putfo(local_file, remote_path, callback=progress_callback if tqdm and show_progress and file_size > 1024 * 1024 else None)
+            
+            if tqdm and show_progress and file_size > 1024 * 1024:
+                pbar.close()
+            
+            return True
+        except Exception as e:
+            print(f"上传文件失败: {str(e)}")
+            return False
+        finally:
+            sftp.close()
+
+    def download_file(self, remote_path: str, local_path: str, show_progress: bool = True) -> bool:
+        """下载文件"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return False
+        
+        try:
+            file_attr = sftp.stat(remote_path)
+            file_size = file_attr.st_size
+            
+            def progress_callback(uploaded, total):
+                if tqdm and show_progress and file_size > 1024 * 1024:
+                    pbar.update(uploaded - pbar.n)
+            
+            if tqdm and show_progress and file_size > 1024 * 1024:
+                pbar = tqdm(total=file_size, unit='B', unit_scale=True, desc=os.path.basename(remote_path))
+            
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            with open(local_path, 'wb') as local_file:
+                sftp.getfo(remote_path, local_file, callback=progress_callback if tqdm and show_progress and file_size > 1024 * 1024 else None)
+            
+            if tqdm and show_progress and file_size > 1024 * 1024:
+                pbar.close()
+            
+            return True
+        except Exception as e:
+            print(f"下载文件失败: {str(e)}")
+            return False
+        finally:
+            sftp.close()
+
+    def upload_dir(self, local_path: str, remote_path: str, show_progress: bool = True) -> bool:
+        """上传目录（递归）"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return False
+        
+        try:
+            local_path = os.path.abspath(local_path)
+            base_name = os.path.basename(local_path)
+            if not remote_path.endswith('/'):
+                remote_path += '/'
+            remote_base = remote_path + base_name
+            
+            try:
+                sftp.stat(remote_base)
+            except:
+                sftp.mkdir(remote_base)
+            
+            files = []
+            dirs = []
+            for root, dirs_list, files_list in os.walk(local_path):
+                rel_path = os.path.relpath(root, local_path)
+                for d in dirs_list:
+                    files.append((os.path.join(root, d), os.path.join(remote_base, rel_path, d)))
+                for f in files_list:
+                    files.append((os.path.join(root, f), os.path.join(remote_base, rel_path, f)))
+            
+            if tqdm and show_progress and len(files) > 0:
+                pbar = tqdm(total=len(files), unit='file', desc=f"上传 {base_name}")
+            
+            success_count = 0
+            for local_file, remote_file in files:
+                try:
+                    remote_dir = os.path.dirname(remote_file)
+                    try:
+                        sftp.stat(remote_dir)
+                    except:
+                        self._mkdir_recursive(sftp, remote_dir)
+                    
+                    if os.path.isfile(local_file):
+                        file_size = os.path.getsize(local_file)
+                        if tqdm and show_progress and file_size > 1024 * 1024:
+                            sub_pbar = tqdm(total=file_size, unit='B', unit_scale=True, desc=os.path.basename(local_file), leave=False)
+                            with open(local_file, 'rb') as f:
+                                sftp.putfo(f, remote_file, callback=lambda u, t: sub_pbar.update(u - sub_pbar.n) if sub_pbar else None)
+                            sub_pbar.close()
+                        else:
+                            with open(local_file, 'rb') as f:
+                                sftp.putfo(f, remote_file)
+                    else:
+                        try:
+                            sftp.stat(remote_file)
+                        except:
+                            sftp.mkdir(remote_file)
+                    success_count += 1
+                except Exception as e:
+                    print(f"上传失败 {local_file}: {str(e)}")
+                
+                if tqdm and show_progress:
+                    pbar.update(1)
+            
+            if tqdm and show_progress:
+                pbar.close()
+            
+            return success_count > 0
+        except Exception as e:
+            print(f"上传目录失败: {str(e)}")
+            return False
+        finally:
+            sftp.close()
+
+    def _mkdir_recursive(self, sftp: SFTPClient, remote_path: str) -> None:
+        """递归创建远程目录"""
+        dirs = []
+        path = remote_path
+        while path and path != '/':
+            dirs.insert(0, path)
+            path = os.path.dirname(path)
+        
+        for d in dirs:
+            try:
+                sftp.stat(d)
+            except:
+                sftp.mkdir(d)
+
+    def download_dir(self, remote_path: str, local_path: str, show_progress: bool = True) -> bool:
+        """下载目录（递归）"""
+        sftp = self.get_sftp()
+        if not sftp:
+            return False
+        
+        try:
+            base_name = os.path.basename(remote_path.rstrip('/'))
+            local_base = os.path.join(local_path, base_name)
+            os.makedirs(local_base, exist_ok=True)
+            
+            files = self._list_dir_recursive(sftp, remote_path)
+            
+            if tqdm and show_progress and len(files) > 0:
+                pbar = tqdm(total=len(files), unit='file', desc=f"下载 {base_name}")
+            
+            success_count = 0
+            for remote_file in files:
+                rel_path = os.path.relpath(remote_file, remote_path)
+                local_file = os.path.join(local_base, rel_path)
+                
+                try:
+                    file_attr = sftp.stat(remote_file)
+                    if str(file_attr).startswith('S_IFREG'):
+                        local_dir = os.path.dirname(local_file)
+                        os.makedirs(local_dir, exist_ok=True)
+                        
+                        file_size = file_attr.st_size
+                        if tqdm and show_progress and file_size > 1024 * 1024:
+                            sub_pbar = tqdm(total=file_size, unit='B', unit_scale=True, desc=os.path.basename(remote_file), leave=False)
+                            with open(local_file, 'wb') as f:
+                                sftp.getfo(remote_file, f, callback=lambda u, t: sub_pbar.update(u - sub_pbar.n) if sub_pbar else None)
+                            sub_pbar.close()
+                        else:
+                            with open(local_file, 'wb') as f:
+                                sftp.getfo(remote_file, f)
+                        success_count += 1
+                    else:
+                        try:
+                            os.stat(local_file)
+                        except:
+                            os.mkdir(local_file)
+                except Exception as e:
+                    print(f"下载失败 {remote_file}: {str(e)}")
+                
+                if tqdm and show_progress:
+                    pbar.update(1)
+            
+            if tqdm and show_progress:
+                pbar.close()
+            
+            return success_count > 0
+        except Exception as e:
+            print(f"下载目录失败: {str(e)}")
+            return False
+        finally:
+            sftp.close()
+
+    def _list_dir_recursive(self, sftp: SFTPClient, remote_path: str) -> List[str]:
+        """递归列出远程目录中的所有文件"""
+        files = []
+        try:
+            for item in sftp.listdir_attr(remote_path):
+                full_path = os.path.join(remote_path, item.filename)
+                if str(item).startswith('S_IFREG'):
+                    files.append(full_path)
+                elif str(item).startswith('S_IFDIR'):
+                    files.extend(self._list_dir_recursive(sftp, full_path))
+        except:
+            pass
+        return files
+
 
 def get_host_os_version(host: Host) -> str:
     """获取主机的操作系统版本"""
@@ -464,6 +725,28 @@ def main():
     refresh_parser = subparsers.add_parser('refresh', help='刷新主机操作系统版本')
     refresh_parser.add_argument('--name', '-n', help='指定主机名称(留空则刷新所有主机)')
 
+    upload_parser = subparsers.add_parser('upload', help='上传文件到远程服务器')
+    upload_parser.add_argument('--name', '-n', required=True, help='主机名称')
+    upload_parser.add_argument('--source', '-s', required=True, help='本地源路径（文件或目录）')
+    upload_parser.add_argument('--dest', '-d', required=True, help='远程目标路径')
+    upload_parser.add_argument('--recursive', '-r', action='store_true', help='递归上传目录')
+    upload_parser.add_argument('--no-progress', action='store_true', help='禁用进度条')
+
+    download_parser = subparsers.add_parser('download', help='从远程服务器下载文件')
+    download_parser.add_argument('--name', '-n', required=True, help='主机名称')
+    download_parser.add_argument('--source', '-s', required=True, help='远程源路径（文件或目录）')
+    download_parser.add_argument('--dest', '-d', required=True, help='本地目标路径')
+    download_parser.add_argument('--recursive', '-r', action='store_true', help='递归下载目录')
+    download_parser.add_argument('--no-progress', action='store_true', help='禁用进度条')
+
+    ls_parser = subparsers.add_parser('ls', help='列出远程目录')
+    ls_parser.add_argument('--name', '-n', required=True, help='主机名称')
+    ls_parser.add_argument('--path', '-p', default='.', help='远程目录路径（默认当前目录）')
+
+    mkdir_parser = subparsers.add_parser('mkdir', help='创建远程目录')
+    mkdir_parser.add_argument('--name', '-n', required=True, help='主机名称')
+    mkdir_parser.add_argument('--path', '-p', required=True, help='远程目录路径')
+
     args = parser.parse_args()
 
     manager = HostManager()
@@ -530,6 +813,62 @@ def main():
             manager.refresh_os_version(args.name)
         else:
             manager.refresh_all_os_versions()
+
+    elif args.command == 'upload':
+        host = manager.get_host(args.name)
+        if not host:
+            print(f"错误: 主机 '{args.name}' 不存在")
+        else:
+            show_progress = not args.no_progress
+            executor = SSHExecutor(host)
+            if args.recursive:
+                success = executor.upload_dir(args.source, args.dest, show_progress)
+            else:
+                success = executor.upload_file(args.source, args.dest, show_progress)
+            executor.close()
+            if success:
+                print("上传成功")
+
+    elif args.command == 'download':
+        host = manager.get_host(args.name)
+        if not host:
+            print(f"错误: 主机 '{args.name}' 不存在")
+        else:
+            show_progress = not args.no_progress
+            executor = SSHExecutor(host)
+            if args.recursive:
+                success = executor.download_dir(args.source, args.dest, show_progress)
+            else:
+                success = executor.download_file(args.source, args.dest, show_progress)
+            executor.close()
+            if success:
+                print("下载成功")
+
+    elif args.command == 'ls':
+        host = manager.get_host(args.name)
+        if not host:
+            print(f"错误: 主机 '{args.name}' 不存在")
+        else:
+            executor = SSHExecutor(host)
+            files = executor.list_dir(args.path)
+            executor.close()
+            if files:
+                print(f"\n{args.path} 目录内容:")
+                for f in files:
+                    print(f"  {f}")
+            else:
+                print("目录为空或不存在")
+
+    elif args.command == 'mkdir':
+        host = manager.get_host(args.name)
+        if not host:
+            print(f"错误: 主机 '{args.name}' 不存在")
+        else:
+            executor = SSHExecutor(host)
+            success = executor.mkdir(args.path)
+            executor.close()
+            if success:
+                print("目录创建成功")
 
     else:
         parser.print_help()

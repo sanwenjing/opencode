@@ -1,7 +1,7 @@
 ---
 name: termux-api-controller
 description: "在远程Termux设备上执行API命令的工具，依赖remote-manager技能"
-version: "1.1.0"
+version: "1.1.1"
 depends:
   - skill: remote-manager
 license: MIT License (见仓库根目录 LICENSE 文件)

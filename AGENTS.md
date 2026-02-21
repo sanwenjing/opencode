@@ -172,3 +172,45 @@ python3 "C:\Users\Administrator\.config\opencode\skills\skill-creator\scripts\ve
   2. 将文件路径加入到 `.gitignore`
   3. 重新添加其他文件并提交
 - **配置文件规范**：所有含密码的配置必须存放在 `config/` 目录，并已在 `.gitignore` 中排除
+
+## 测试文件清理规则（重要）
+
+### 清理原则
+- **禁止使用 `rm -rf` 递归删除命令**，除非明确知道目标路径是测试时创建的临时文件
+- **禁止删除配置文件**，包括但不限于：
+  - `hosts.yaml`、`.json`、`.yaml`、`.config.*` 等配置文件
+  - 技能目录下的 `config/` 文件夹中的任何文件
+- **必须先确认文件来源**：只删除本次会话中创建的测试文件
+
+### 正确做法
+- 清理前使用 `ls` 命令确认文件存在且是测试创建的
+- 使用单文件删除：`rm 文件路径`
+- 如需删除目录，先用 `ls -la` 查看目录内容确认
+- 对于不确定的文件，主动确认后再删除
+
+### 错误示例
+```bash
+# 错误：递归删除，可能误删配置文件
+rm -rf /root/test_folder
+
+# 错误：误删技能配置文件
+rm /root/.config/opencode/skills/remote-manager/config/hosts.yaml
+
+# 错误：不确认就删除
+rm -r /root/*
+```
+
+### 正确示例
+```bash
+# 正确：先确认文件存在
+ls /root/test_upload.txt
+rm /root/test_upload.txt
+
+# 正确：逐个删除测试文件
+rm /root/test_file1.txt
+rm /root/test_file2.txt
+
+# 正确：使用 glob 确认后再删除
+ls /root/test_*.txt
+rm /root/test_*.txt
+```
