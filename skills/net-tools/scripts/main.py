@@ -15,19 +15,6 @@ import re
 
 PATH_SEP = os.sep
 
-COMMON_PORTS = [
-    21, 22, 23, 25, 53, 80, 110, 111, 135, 139, 143, 443, 445, 993, 995, 
-    1723, 3306, 3389, 5432, 5900, 8080, 8443, 10000, 49152, 49153, 49154
-]
-
-SERVICE_NAMES = {
-    21: 'ftp', 22: 'ssh', 23: 'telnet', 25: 'smtp', 53: 'dns', 
-    80: 'http', 110: 'pop3', 111: 'rpcbind', 135: 'msrpc', 139: 'netbios-ssn',
-    143: 'imap', 443: 'https', 445: 'microsoft-ds', 993: 'imaps', 995: 'pop3s',
-    1723: 'pptp', 3306: 'mysql', 3389: 'ms-wbt-server', 5432: 'postgresql',
-    5900: 'vnc', 8080: 'http-proxy', 8443: 'https-alt', 10000: 'webmin'
-}
-
 
 def get_output_path(filename: str) -> str:
     return os.path.join(os.getcwd(), filename)
@@ -83,29 +70,6 @@ def test_nmap_works():
         return False
 
 
-def scan_port(target, port, timeout=3):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(timeout)
-    try:
-        result = s.connect_ex((target, port))
-        return result == 0
-    except:
-        return False
-    finally:
-        s.close()
-
-
-def scan_ports_socket(target, ports, verbose=False, timeout=3):
-    results = []
-    for port in ports:
-        if verbose:
-            print(f"扫描端口: {port}", end='\r')
-        is_open = scan_port(target, port, timeout)
-        service = SERVICE_NAMES.get(port, 'unknown')
-        results.append((port, is_open, service))
-    return results
-
-
 def run_nmap(args_list):
     cmd = ['nmap'] + args_list
     try:
@@ -135,6 +99,10 @@ def parse_ports(ports_str):
 
 
 def cmd_scan(target, ports=None, output=None, verbose=False, timing=3):
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
     ip = resolve_host(target)
     if not ip:
         print(f"无法解析主机: {target}")
@@ -142,31 +110,12 @@ def cmd_scan(target, ports=None, output=None, verbose=False, timing=3):
     
     print(f"目标: {target} ({ip})")
     
-    if use_nmap():
-        args = [f'-T{timing}', target]
-        if ports:
-            args.extend(['-p', ports])
-        stdout, code = run_nmap(args)
+    args = [f'-T{timing}', target]
+    if ports:
+        args.extend(['-p', ports])
     else:
-        print("nmap不可用，使用Python socket扫描...")
-        if ports:
-            port_list = parse_ports(ports)
-        else:
-            port_list = COMMON_PORTS[:20]
-        
-        print(f"扫描端口: {port_list}")
-        results = scan_ports_socket(ip, port_list, verbose)
-        
-        lines = []
-        lines.append(f"Nmap scan report for {target} ({ip})")
-        lines.append(f"Host is up.")
-        lines.append(f"PORT      STATE SERVICE")
-        for port, is_open, service in results:
-            state = "open" if is_open else "closed"
-            lines.append(f"{port}/tcp   {state}     {service}")
-        
-        stdout = "\n".join(lines)
-        code = 0
+        args.append('-p-')
+    stdout, code = run_nmap(args)
     
     if output:
         output_path = get_output_path(output)
@@ -178,6 +127,10 @@ def cmd_scan(target, ports=None, output=None, verbose=False, timing=3):
 
 
 def cmd_quick(target, output=None, verbose=False):
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
     ip = resolve_host(target)
     if not ip:
         print(f"无法解析主机: {target}")
@@ -185,22 +138,7 @@ def cmd_quick(target, output=None, verbose=False):
     
     print(f"目标: {target} ({ip})")
     
-    if use_nmap():
-        stdout, code = run_nmap(['-F', target])
-    else:
-        print("nmap不可用，使用Python socket快速扫描...")
-        results = scan_ports_socket(ip, COMMON_PORTS[:20], verbose)
-        
-        lines = []
-        lines.append(f"Nmap scan report for {target} ({ip})")
-        lines.append(f"Host is up.")
-        lines.append(f"PORT      STATE SERVICE")
-        for port, is_open, service in results:
-            if is_open:
-                lines.append(f"{port}/tcp   open     {service}")
-        
-        stdout = "\n".join(lines)
-        code = 0
+    stdout, code = run_nmap(['-F', target])
     
     if output:
         output_path = get_output_path(output)
@@ -212,19 +150,15 @@ def cmd_quick(target, output=None, verbose=False):
 
 
 def cmd_discover(target, output=None, verbose=False):
-    if use_nmap():
-        args = ['-sn']
-        if target.startswith('192.168.') or target.startswith('10.') or target.startswith('172.'):
-            args.append('-PR')
-        args.append(target)
-        stdout, code = run_nmap(args)
-    else:
-        lines = []
-        lines.append(f"Nmap scan report for {target}")
-        lines.append("Host is up.")
-        lines.append("Note: Host discovery requires nmap with root privileges")
-        stdout = "\n".join(lines)
-        code = 0
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
+    args = ['-sn']
+    if target.startswith('192.168.') or target.startswith('10.') or target.startswith('172.'):
+        args.append('-PR')
+    args.append(target)
+    stdout, code = run_nmap(args)
     
     if output:
         output_path = get_output_path(output)
@@ -236,6 +170,10 @@ def cmd_discover(target, output=None, verbose=False):
 
 
 def cmd_service(target, ports=None, output=None, verbose=False):
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
     ip = resolve_host(target)
     if not ip:
         print(f"无法解析主机: {target}")
@@ -243,31 +181,13 @@ def cmd_service(target, ports=None, output=None, verbose=False):
     
     print(f"目标: {target} ({ip})")
     
-    if use_nmap():
-        args = ['-sV']
-        if ports:
-            args.extend(['-p', ports])
-        args.append(target)
-        stdout, code = run_nmap(args)
+    args = ['-sV']
+    if ports:
+        args.extend(['-p', ports])
     else:
-        print("nmap不可用，使用Python socket扫描...")
-        if ports:
-            port_list = parse_ports(ports)
-        else:
-            port_list = COMMON_PORTS[:30]
-        
-        results = scan_ports_socket(ip, port_list, verbose)
-        
-        lines = []
-        lines.append(f"Nmap scan report for {target} ({ip})")
-        lines.append(f"Host is up.")
-        lines.append(f"PORT      STATE SERVICE VERSION")
-        for port, is_open, service in results:
-            if is_open:
-                lines.append(f"{port}/tcp   open     {service}")
-        
-        stdout = "\n".join(lines)
-        code = 0
+        args.append('-p-')
+    args.append(target)
+    stdout, code = run_nmap(args)
     
     if output:
         output_path = get_output_path(output)
@@ -279,11 +199,11 @@ def cmd_service(target, ports=None, output=None, verbose=False):
 
 
 def cmd_os(target, output=None, verbose=False):
-    if use_nmap():
-        stdout, code = run_nmap(['-O', target])
-    else:
-        stdout = "操作系统检测需要nmap支持"
-        code = 1
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
+    stdout, code = run_nmap(['-O', target])
     
     if output:
         output_path = get_output_path(output)
@@ -295,6 +215,10 @@ def cmd_os(target, output=None, verbose=False):
 
 
 def cmd_full(target, output=None, verbose=False):
+    if not use_nmap():
+        print("错误: nmap不可用，请先安装nmap")
+        sys.exit(1)
+    
     ip = resolve_host(target)
     if not ip:
         print(f"无法解析主机: {target}")
@@ -302,22 +226,7 @@ def cmd_full(target, output=None, verbose=False):
     
     print(f"目标: {target} ({ip})")
     
-    if use_nmap():
-        stdout, code = run_nmap(['-A', target])
-    else:
-        print("nmap不可用，使用Python socket完整扫描...")
-        results = scan_ports_socket(ip, COMMON_PORTS, verbose)
-        
-        lines = []
-        lines.append(f"Nmap scan report for {target} ({ip})")
-        lines.append(f"Host is up.")
-        lines.append(f"PORT      STATE SERVICE")
-        for port, is_open, service in results:
-            if is_open:
-                lines.append(f"{port}/tcp   open     {service}")
-        
-        stdout = "\n".join(lines)
-        code = 0
+    stdout, code = run_nmap(['-A', '-p-', target])
     
     if output:
         output_path = get_output_path(output)
