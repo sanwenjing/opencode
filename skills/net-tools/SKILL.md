@@ -2,7 +2,7 @@
 ---
 name: net-tools
 description: "Nmap网络扫描工具封装，提供常用扫描命令和简化操作"
-version: "1.0.0"
+version: "1.1.0"
 license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
