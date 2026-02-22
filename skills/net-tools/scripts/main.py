@@ -159,135 +159,42 @@ def parse_ports(ports_str):
     return ports
 
 
-def cmd_scan(target, ports=None, output=None, verbose=False, timing=3):
+def cmd_scan(target, ports=None, output=None, verbose=False, timing=3, mode='basic'):
     if not use_nmap():
         print("错误: nmap不可用，请先安装nmap")
         sys.exit(1)
     
     ip = resolve_host(target)
-    if not ip:
+    if not ip and mode != 'discover':
         print(f"无法解析主机: {target}")
         return "DNS解析失败", 1
     
-    print(f"目标: {target} ({ip})")
-    
-    args = [f'-T{timing}', target]
-    if ports:
-        args.extend(['-p', ports])
+    if ip:
+        print(f"目标: {target} ({ip})")
     else:
-        args.append('-p-')
-    stdout, code = run_nmap(args)
+        print(f"目标: {target}")
     
-    if output:
-        output_path = get_output_path(output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        print(f"结果已保存到: {output_path}")
+    mode_flags = {
+        'basic': ['-p-'],
+        'quick': ['-F'],
+        'discover': ['-sn'],
+        'service': ['-sV', '-p-'],
+        'os': ['-O'],
+        'full': ['-A', '-p-'],
+    }
     
-    return stdout, code
-
-
-def cmd_quick(target, output=None, verbose=False):
-    if not use_nmap():
-        print("错误: nmap不可用，请先安装nmap")
-        sys.exit(1)
+    args = [f'-T{timing}']
+    args.extend(mode_flags.get(mode, ['-p-']))
     
-    ip = resolve_host(target)
-    if not ip:
-        print(f"无法解析主机: {target}")
-        return "DNS解析失败", 1
-    
-    print(f"目标: {target} ({ip})")
-    
-    stdout, code = run_nmap(['-F', target])
-    
-    if output:
-        output_path = get_output_path(output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        print(f"结果已保存到: {output_path}")
-    
-    return stdout, code
-
-
-def cmd_discover(target, output=None, verbose=False):
-    if not use_nmap():
-        print("错误: nmap不可用，请先安装nmap")
-        sys.exit(1)
-    
-    args = ['-sn']
-    if target.startswith('192.168.') or target.startswith('10.') or target.startswith('172.'):
-        args.append('-PR')
-    args.append(target)
-    stdout, code = run_nmap(args)
-    
-    if output:
-        output_path = get_output_path(output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        print(f"结果已保存到: {output_path}")
-    
-    return stdout, code
-
-
-def cmd_service(target, ports=None, output=None, verbose=False):
-    if not use_nmap():
-        print("错误: nmap不可用，请先安装nmap")
-        sys.exit(1)
-    
-    ip = resolve_host(target)
-    if not ip:
-        print(f"无法解析主机: {target}")
-        return "DNS解析失败", 1
-    
-    print(f"目标: {target} ({ip})")
-    
-    args = ['-sV']
-    if ports:
+    if ports and mode not in ['discover', 'os']:
         args.extend(['-p', ports])
-    else:
-        args.append('-p-')
+    
+    if verbose:
+        args.append('-v')
+    
     args.append(target)
+    
     stdout, code = run_nmap(args)
-    
-    if output:
-        output_path = get_output_path(output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        print(f"结果已保存到: {output_path}")
-    
-    return stdout, code
-
-
-def cmd_os(target, output=None, verbose=False):
-    if not use_nmap():
-        print("错误: nmap不可用，请先安装nmap")
-        sys.exit(1)
-    
-    stdout, code = run_nmap(['-O', target])
-    
-    if output:
-        output_path = get_output_path(output)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        print(f"结果已保存到: {output_path}")
-    
-    return stdout, code
-
-
-def cmd_full(target, output=None, verbose=False):
-    if not use_nmap():
-        print("错误: nmap不可用，请先安装nmap")
-        sys.exit(1)
-    
-    ip = resolve_host(target)
-    if not ip:
-        print(f"无法解析主机: {target}")
-        return "DNS解析失败", 1
-    
-    print(f"目标: {target} ({ip})")
-    
-    stdout, code = run_nmap(['-A', '-p-', target])
     
     if output:
         output_path = get_output_path(output)
@@ -656,34 +563,15 @@ def main():
     
     subparsers = parser.add_subparsers(dest='command', help='可用命令')
     
-    parser_scan = subparsers.add_parser('scan', help='基本端口扫描')
+    parser_scan = subparsers.add_parser('scan', help='端口扫描')
     parser_scan.add_argument('target', help='目标IP或域名')
-    parser_scan.add_argument('-p', '--ports', help='指定端口')
-    parser_scan.add_argument('-o', '--output', help='保存结果')
-    parser_scan.add_argument('-v', '--verbose', action='store_true')
-    parser_scan.add_argument('-t', '--timing', type=int, default=3)
-    
-    parser_quick = subparsers.add_parser('quick', help='快速扫描')
-    parser_quick.add_argument('target', help='目标IP或域名')
-    parser_quick.add_argument('-o', '--output', help='保存结果')
-    parser_quick.add_argument('-v', '--verbose', action='store_true')
-    
-    parser_discover = subparsers.add_parser('discover', help='主机发现')
-    parser_discover.add_argument('target', help='目标网络')
-    parser_discover.add_argument('-o', '--output', help='保存结果')
-    
-    parser_service = subparsers.add_parser('service', help='服务版本检测')
-    parser_service.add_argument('target', help='目标')
-    parser_service.add_argument('-p', '--ports', help='端口')
-    parser_service.add_argument('-o', '--output', help='保存结果')
-    
-    parser_os = subparsers.add_parser('os', help='操作系统检测')
-    parser_os.add_argument('target', help='目标')
-    parser_os.add_argument('-o', '--output', help='保存结果')
-    
-    parser_full = subparsers.add_parser('full', help='完整扫描')
-    parser_full.add_argument('target', help='目标')
-    parser_full.add_argument('-o', '--output', help='保存结果')
+    parser_scan.add_argument('-p', '--ports', help='指定端口（如: 80,443 或 1-1000）')
+    parser_scan.add_argument('-o', '--output', help='保存结果到文件')
+    parser_scan.add_argument('-v', '--verbose', action='store_true', help='详细输出')
+    parser_scan.add_argument('-t', '--timing', type=int, default=3, choices=range(0,6), help='扫描速度(0-5)')
+    parser_scan.add_argument('-m', '--mode', default='basic', 
+                           choices=['basic', 'quick', 'discover', 'service', 'os', 'full'],
+                           help='扫描模式: basic默认全端口, quick快速, discover主机发现, service服务版本, os系统检测, full完整扫描')
     
     parser_ping = subparsers.add_parser('ping', help='Ping测试')
     parser_ping.add_argument('target', help='目标IP或域名')
@@ -802,12 +690,7 @@ def main():
     output = getattr(args, 'output', None)
     
     commands = {
-        'scan': lambda: cmd_scan(args.target, args.ports, output, args.verbose, args.timing),
-        'quick': lambda: cmd_quick(args.target, output, args.verbose),
-        'discover': lambda: cmd_discover(args.target, output, args.verbose),
-        'service': lambda: cmd_service(args.target, args.ports, output, args.verbose),
-        'os': lambda: cmd_os(args.target, output, args.verbose),
-        'full': lambda: cmd_full(args.target, output, args.verbose),
+        'scan': lambda: cmd_scan(args.target, args.ports, output, args.verbose, args.timing, args.mode),
         'ping': lambda: cmd_ping(args.target, args.count, output),
         'traceroute': lambda: cmd_traceroute(args.target, output),
         'mtr': lambda: cmd_mtr(args.target, args.count, output),
