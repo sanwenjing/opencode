@@ -59,6 +59,61 @@ def check_nmap():
     return False
 
 
+def install_nmap():
+    import platform
+    system = platform.system().lower()
+    
+    print("nmap未安装，正在尝试自动安装...")
+    
+    commands = {
+        'linux': {
+            'debian': ['sudo', 'apt', 'install', '-y', 'nmap'],
+            'ubuntu': ['sudo', 'apt', 'install', '-y', 'nmap'],
+            'centos': ['sudo', 'yum', 'install', '-y', 'nmap'],
+            'fedora': ['sudo', 'dnf', 'install', '-y', 'nmap'],
+            'arch': ['sudo', 'pacman', '-S', '--noconfirm', 'nmap'],
+            'alpine': ['sudo', 'apk', 'add', 'nmap'],
+            'termux': ['pkg', 'install', 'nmap'],
+        },
+        'darwin': ['brew', 'install', 'nmap'],
+        'windows': ['choco', 'install', 'nmap'],
+    }
+    
+    if system == 'linux':
+        import subprocess
+        result = subprocess.run(['cat', '/etc/os-release'], capture_output=True, text=True)
+        os_info = result.stdout.lower()
+        
+        for name, cmd in commands['linux'].items():
+            if name in os_info:
+                print(f"检测到 {name}，执行: {' '.join(cmd)}")
+                try:
+                    subprocess.run(cmd, timeout=120)
+                    if check_nmap():
+                        print("nmap安装成功!")
+                        return True
+                except Exception as e:
+                    print(f"安装失败: {e}")
+                    break
+    
+    elif system == 'darwin':
+        try:
+            print(f"执行: {' '.join(commands['darwin'])}")
+            subprocess.run(commands['darwin'], timeout=120)
+            if check_nmap():
+                print("nmap安装成功!")
+                return True
+        except Exception as e:
+            print(f"安装失败: {e}")
+    
+    print("\n自动安装失败，请手动安装:")
+    print("  Ubuntu/Debian: sudo apt install nmap")
+    print("  CentOS/RHEL: sudo yum install nmap")
+    print("  macOS: brew install nmap")
+    print("  Termux: pkg install nmap")
+    return False
+
+
 def test_nmap_works():
     try:
         result = subprocess.run(['nmap', '-p', '80', '127.0.0.1'], 
@@ -83,7 +138,13 @@ def run_nmap(args_list):
 
 
 def use_nmap():
-    return check_nmap() and test_nmap_works()
+    if not check_nmap():
+        return install_nmap() and test_nmap_works()
+    if test_nmap_works():
+        return True
+    print("错误: nmap已安装但无法正常工作（网络权限限制）")
+    print("请确保nmap有网络访问权限")
+    return False
 
 
 def parse_ports(ports_str):
