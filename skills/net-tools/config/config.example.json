@@ -1,0 +1,28 @@
+{
+    "skill_name": "net-tools",
+    "version": "1.0.0",
+    "settings": {
+        "default_timing": 3,
+        "default_ports": "",
+        "output_dir": ".",
+        "verbose": false
+    },
+    "scan_profiles": {
+        "quick": {
+            "description": "快速扫描（100个常用端口）",
+            "ports": ""
+        },
+        "full": {
+            "description": "完整扫描",
+            "flags": ["-A"]
+        },
+        "stealth": {
+            "description": "隐蔽扫描（SYN）",
+            "flags": ["-sS"]
+        }
+    },
+    "common_ports": [
+        21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 
+        993, 995, 3306, 3389, 5432, 8080, 8443
+    ]
+}
