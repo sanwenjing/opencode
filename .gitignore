@@ -10,5 +10,14 @@ bun.lock
 /skills/*/config/hosts.yaml
 /skills/*/config/mqtt_config.json
 /skills/bilibili-downloader/ffmpeg
+
+# SQLite数据库
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
 **/__pycache__/
 **/nul
