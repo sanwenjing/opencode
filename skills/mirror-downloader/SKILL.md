@@ -2,7 +2,7 @@
 name: mirror-downloader
 description: 递归下载镜像站点文件的工具，支持自定义URL地址参数，可递归下载整个目录结构
 license: MIT License (见仓库根目录 LICENSE 文件)
-version: 1.0.0
+version: 1.1.0
 ---
 
 ## 我做什么
@@ -15,6 +15,7 @@ version: 1.0.0
 - 自动跳过已存在的文件，支持断点续传
 - 支持多种镜像站点格式（HTML目录列表）
 - **下载后自动校验文件完整性**，比对远程和本地文件数量
+- **自动识别Alpine镜像结构，默认只下载x86_64架构**
 
 ## 何时使用我
 
@@ -60,6 +61,19 @@ cd recursive-mirror-downloader
 python scripts/download.py
 ```
 
+#### 指定架构下载
+
+```bash
+# 下载默认的x86_64架构（main + community仓库）
+python scripts/download.py
+
+# 指定其他架构（aarch64, armhf, riscv64等）
+python scripts/download.py -u https://mirrors.aliyun.com/alpine/v3.23/ -a aarch64
+
+# 下载所有架构
+python scripts/download.py -u https://mirrors.aliyun.com/alpine/v3.23/ -a all
+```
+
 #### 指定URL下载
 
 ```bash
@@ -95,6 +109,7 @@ python scripts/download.py -u https://example.com/ -w 100
 ```
 选项:
   -h, --help            显示帮助信息
+  -a ARCH, --arch ARCH  指定CPU架构 (默认: x86_64, 使用 all 下载所有架构)
   -u URL, --url URL     要下载的基础URL (默认: https://mirrors.aliyun.com/alpine/v3.23/)
   -o OUTPUT, --output OUTPUT  输出目录路径 (默认: ./downloads)
   -d DELAY, --delay DELAY    每次请求之间的延迟（秒）(默认: 0.5)
