@@ -1,0 +1,26 @@
+{
+    "skill_name": "nexa-installer",
+    "version": "1.0.0",
+    "settings": {
+        "output_dir": "output",
+        "log_level": "info",
+        "max_retries": 3
+    },
+    "installation": {
+        "default_host": "0.0.0.0",
+        "default_port": 18181,
+        "service_name": "nexa",
+        "service_description": "Nexa AI Service",
+        "install_path": "/usr/local/bin",
+        "remote_temp_dir": "/tmp"
+    },
+    "api": {
+        "enabled": false,
+        "api_key": "",
+        "base_url": ""
+    },
+    "data": {
+        "cache_enabled": true,
+        "cache_ttl": 3600
+    }
+}
