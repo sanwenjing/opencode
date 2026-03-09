@@ -1,0 +1,18 @@
+{
+    "skill_name": "your-skill-name",
+    "version": "1.0.0",
+    "settings": {
+        "output_dir": "output",
+        "log_level": "info",
+        "max_retries": 3
+    },
+    "api": {
+        "enabled": false,
+        "api_key": "",
+        "base_url": ""
+    },
+    "data": {
+        "cache_enabled": true,
+        "cache_ttl": 3600
+    }
+}
