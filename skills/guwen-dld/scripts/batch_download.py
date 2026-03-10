@@ -11,14 +11,13 @@ import time
 import json
 import requests
 import threading
-import concurrent.futures
 from urllib.parse import urljoin
 from queue import Queue
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 thread_local = threading.local()
 
 def get_session():
-    """获取线程本地session"""
     if not hasattr(thread_local, 'session'):
         thread_local.session = requests.Session()
         thread_local.session.headers.update({
@@ -27,7 +26,6 @@ def get_session():
     return thread_local.session
 
 def extract_intro(html):
-    """从首页提取书籍简介"""
     desc_match = re.search(r'<meta[^>]+name="description"[^>]+content="([^"]+)"', html)
     if desc_match:
         intro = desc_match.group(1).strip()
@@ -36,7 +34,6 @@ def extract_intro(html):
             title = ""
             if title_match:
                 title = title_match.group(1).replace('全文_古文岛_原古诗文网', '').replace('古文岛', '').replace('原古诗文网', '').strip()
-            
             result = ""
             if title:
                 result += title + "\n\n"
@@ -45,7 +42,6 @@ def extract_intro(html):
     return ""
 
 def extract_content(html):
-    """从章节页面提取正文内容"""
     html = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL)
     html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.DOTALL)
     html = re.sub(r'<div[^>]*class="[^"]*play[^"]*"[^>]*>.*?</div>', '', html, flags=re.DOTALL|re.IGNORECASE)
@@ -53,7 +49,7 @@ def extract_content(html):
     html = re.sub(r'<div[^>]*class="[^"]*footer[^"]*"[^>]*>.*?</div>', '', html, flags=re.DOTALL|re.IGNORECASE)
     html = re.sub(r'<div[^>]*class="[^"]*menu[^"]*"[^>]*>.*?</div>', '', html, flags=re.DOTALL|re.IGNORECASE)
     html = re.sub(r'<div[^>]*class="[^"]*tool[^"]*"[^>]*>.*?</div>', '', html, flags=re.DOTALL|re.IGNORECASE)
-    html = re.sub(r'<audio[^>]*>.*?</audio>', '', html, flags=re.DOTALL)
+    html = re.sub(r'<audio[^>]*>.*? ', '', html, flags=re.DOTALL)
     html = re.sub(r'<span[^>]*class="[^"]*speaker[^"]*"[^>]*>.*?</span>', '', html, flags=re.DOTALL)
     html = re.sub(r'<a[^>]*>.*?</a>', '', html, flags=re.DOTALL)
     html = re.sub(r'<button[^>]*>.*?</button>', '', html, flags=re.DOTALL)
@@ -81,19 +77,32 @@ def extract_content(html):
     return '\n'.join(lines)
 
 def parse_chapters(html, base_url):
-    """从目录页解析所有章节链接"""
-    pattern = r'href="(/guwen/bookv_[^"]+\.aspx)"'
-    matches = re.findall(pattern, html)
+    chapters = set()
+    base_url = base_url.rstrip('/')
     
-    chapters = []
-    for match in matches:
+    pattern1 = r'href="(/guwen/bookv_[^"]+\.aspx)"'
+    for match in re.findall(pattern1, html):
         full_url = urljoin(base_url, match)
-        if full_url not in chapters:
-            chapters.append(full_url)
-    return chapters
+        chapters.add(full_url)
+    
+    pattern2 = r'href="(/guwen/book_[^"]+\.aspx)"'
+    for match in re.findall(pattern2, html):
+        full_url = urljoin(base_url, match)
+        chapters.add(full_url)
+    
+    return list(chapters)
 
-def download_one_book(url, output_dir, lock, result_queue):
-    """下载单本古籍"""
+def download_chapter(args):
+    chapter_url, session = args
+    try:
+        resp = session.get(chapter_url, timeout=30)
+        resp.encoding = 'utf-8'
+        content = extract_content(resp.text)
+        return content if content else None
+    except Exception:
+        return None
+
+def download_one_book(url, output_dir, lock):
     session = get_session()
     try:
         response = session.get(url, timeout=30)
@@ -120,66 +129,45 @@ def download_one_book(url, output_dir, lock, result_queue):
             filepath = os.path.join(output_dir, filename)
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)
-            result_queue.put((filename, 1, True))
-            return filename, 1
+            with lock:
+                print(f"  [完成] {filename} (单页)")
+            return filename, 1, True
         else:
             all_content = []
-            for i, chapter_url in enumerate(chapters):
-                time.sleep(0.3)
-                try:
-                    resp = session.get(chapter_url, timeout=30)
-                    resp.encoding = 'utf-8'
-                    chapter_html = resp.text
-                    content = extract_content(chapter_html)
+            chapter_count = len(chapters)
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                args_list = [(url, session) for url in chapters]
+                results = list(executor.map(download_chapter, args_list))
+                for i, content in enumerate(results):
                     if content:
                         all_content.append(content)
-                except Exception as e:
-                    pass
             
             filepath = os.path.join(output_dir, filename)
             with open(filepath, 'w', encoding='utf-8') as f:
                 if intro_content:
                     f.write(intro_content)
-                    f.write("\n" + "="*50 + "\n\n")
+                    f.write("\n" + "=" * 50 + "\n\n")
                 for content in all_content:
                     f.write(content)
                     f.write('\n\n---章节分隔---\n\n')
             
-            result_queue.put((filename, len(all_content), True))
-            return filename, len(all_content)
+            with lock:
+                print(f"  [完成] {filename} ({len(all_content)}/{chapter_count}章节)")
+            return filename, len(all_content), True
             
     except Exception as e:
-        result_queue.put((url, 0, False))
-        return None, 0
-
-def worker(url_queue, output_dir, lock, result_queue, thread_id):
-    """工作线程"""
-    while True:
-        try:
-            url = url_queue.get_nowait()
-        except:
-            break
-        
-        filename, count, success = download_one_book(url, output_dir, lock, result_queue)
-        if success:
-            with lock:
-                print(f"[线程{thread_id}] 完成: {filename} ({count}章节)")
-        else:
-            with lock:
-                print(f"[线程{thread_id}] 失败: {url}")
-        
-        url_queue.task_done()
-        time.sleep(0.5)  # 避免请求过快
+        with lock:
+            print(f"  [失败] {url}")
+        return None, 0, False
 
 def batch_download_parallel(max_workers=5, max_books=None):
-    """并行批量下载"""
     output_dir = os.getcwd()
     guwen_dir = os.path.join(output_dir, "guwen_books")
     os.makedirs(guwen_dir, exist_ok=True)
     
     urls_file = os.path.join(guwen_dir, "all_urls.txt")
     if not os.path.exists(urls_file):
-        print("请先运行 --urls-only 获取URL列表")
+        print("错误: 未找到 all_urls.txt，请先运行 get_all_urls.py 获取URL列表")
         return
     
     with open(urls_file, 'r', encoding='utf-8') as f:
@@ -190,30 +178,18 @@ def batch_download_parallel(max_workers=5, max_books=None):
     if max_books:
         all_urls = all_urls[:max_books]
     
-    url_queue = Queue()
-    for url in all_urls:
-        url_queue.put(url)
-    
     lock = threading.Lock()
-    result_queue = Queue()
-    
-    threads = []
-    for i in range(max_workers):
-        t = threading.Thread(target=worker, args=(url_queue, guwen_dir, lock, result_queue, i+1))
-        t.daemon = True
-        t.start()
-        threads.append(t)
-    
-    url_queue.join()
-    
     success = 0
     failed = 0
-    while not result_queue.empty():
-        filename, count, success_flag = result_queue.get()
-        if success_flag:
-            success += 1
-        else:
-            failed += 1
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(download_one_book, url, guwen_dir, lock): url for url in all_urls}
+        for future in as_completed(futures):
+            filename, count, ok = future.result()
+            if ok:
+                success += 1
+            else:
+                failed += 1
     
     print(f"\n下载完成! 成功: {success}, 失败: {failed}")
     print(f"文件保存位置: {guwen_dir}")
