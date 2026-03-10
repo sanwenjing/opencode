@@ -361,6 +361,10 @@ class SSHExecutor:
             if tqdm and show_progress and file_size > 1024 * 1024:
                 pbar = tqdm(total=file_size, unit='B', unit_scale=True, desc=os.path.basename(remote_path))
             
+            local_dir = os.path.dirname(local_path)
+            if not local_dir or local_path.endswith('/') or local_path.endswith('\\'):
+                local_path = os.path.join(local_path, os.path.basename(remote_path))
+            
             os.makedirs(os.path.dirname(local_path), exist_ok=True)
             with open(local_path, 'wb') as local_file:
                 sftp.getfo(remote_path, local_file, callback=progress_callback if tqdm and show_progress and file_size > 1024 * 1024 else None)
