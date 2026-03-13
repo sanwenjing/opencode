@@ -1,7 +1,7 @@
 ---
 name: remote-manager
 description: 批量管理远程SSH主机的工具，支持维护主机信息表并批量执行命令获取结果
-version: 1.1.0
+version: 1.1.3
 license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 
@@ -59,15 +59,15 @@ pip install -r "C:\Users\Administrator\.config\opencode\skills\remote-manager\sc
 #### 添加主机
 
 ```bash
-python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n <名称> -h <地址> -p <端口> -u <用户名> -pwd <密码>
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n <名称> --host <地址> --port <端口> -u <用户名> --password <密码>
 ```
 
 **参数说明**：
 - `-n, --name`: 主机唯一名称标识（必需）
-- `-h, --host`: 主机IP地址或域名（必需）
+- `--host`: 主机IP地址或域名（必需）
 - `-p, --port`: SSH端口（默认: 22）
 - `-u, --username`: 用户名（默认: root）
-- `-pwd, --password`: 密码
+- `--password`: 密码
 - `-k, --private-key`: 私钥文件路径（可选，与密码二选一）
 - `-P, --purpose`: 用途说明
 - `-r, --remark`: 备注信息
@@ -75,10 +75,10 @@ python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\ma
 **示例**：
 ```bash
 # 添加使用密码认证的服务器
-python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n server-prod -h 192.168.1.100 -p 22 -u root -pwd yourpassword -P "生产环境" -r "主业务服务器"
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n server-prod --host 192.168.1.100 --port 22 -u root --password yourpassword -P "生产环境" -r "主业务服务器"
 
 # 添加使用私钥认证的服务器
-python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n server-dev -h dev.example.com -p 22 -u admin -k C:\keys\id_rsa -P "开发环境"
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n server-dev --host dev.example.com --port 22 -u admin -k C:\keys\id_rsa -P "开发环境"
 ```
 
 #### 列出所有主机

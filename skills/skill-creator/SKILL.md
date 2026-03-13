@@ -1,7 +1,7 @@
 ---
 name: skill-creator
-description: "严格验证并创建符合OpenCode规范的新技能，同时提供完整的技能诊断和修复功能"
-version: "1.1.0"
+description: 严格验证并创建符合OpenCode规范的新技能，同时提供完整的技能诊断和修复功能
+version: 1.1.1
 license: MIT License (见仓库根目录 LICENSE 文件)
 ---
 

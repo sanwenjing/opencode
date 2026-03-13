@@ -105,13 +105,19 @@ def update_version(skill_name: str, version: str, message: str) -> bool:
         with open(changelog_path, 'r', encoding='utf-8') as f:
             changelog_content = f.read()
         
-        # 找到第一个 ## [ 版本行，插入到它之前
+        # 检查是否已存在相同版本的条目
+        version_pattern = f"## [{version}]"
+        if version_pattern in changelog_content:
+            print(f"警告: 版本 {version} 已存在于CHANGELOG中，跳过添加")
+            return True
+        
+        # 找到第一个 ## [ 版本行，插入到它之前（只插入一次）
         lines = changelog_content.split('\n')
         new_lines = []
         inserted = False
         for i, line in enumerate(lines):
-            if line.startswith('## ['):
-                # 在这里插入新条目
+            if line.startswith('## [') and not inserted:
+                # 只在第一个版本行之前插入新条目
                 new_lines.append(changelog_entry.rstrip())
                 inserted = True
             new_lines.append(line)
