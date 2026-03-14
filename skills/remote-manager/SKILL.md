@@ -59,11 +59,11 @@ pip install -r "C:\Users\Administrator\.config\opencode\skills\remote-manager\sc
 #### 添加主机
 
 ```bash
-python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add -n <名称> --host <地址> --port <端口> -u <用户名> --password <密码>
+python "C:\Users\Administrator\.config\opencode\skills\remote-manager\scripts\main.py" add --name <名称> --host <地址> --port <端口> -u <用户名> --password <密码>
 ```
 
 **参数说明**：
-- `-n, --name`: 主机唯一名称标识（必需）
+- `--name`: 主机唯一名称标识（必需）
 - `--host`: 主机IP地址或域名（必需）
 - `-p, --port`: SSH端口（默认: 22）
 - `-u, --username`: 用户名（默认: root）
